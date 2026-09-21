@@ -123,8 +123,8 @@ class Handler(SimpleHTTPRequestHandler):
         if path=='/admin/login':
             x=self.body_json()
             username = str(x.get('username','')).strip()
-             password = str(x.get('password','')).strip()
-             if ADMIN_PASSWORD and username.casefold()==ADMIN_USER.strip().casefold() and secrets.compare_digest(password, ADMIN_PASSWORD):
+            password = str(x.get('password','')).strip()
+            if ADMIN_PASSWORD and username.casefold()==ADMIN_USER.strip().casefold() and secrets.compare_digest(password, ADMIN_PASSWORD):
                 token=secrets.token_urlsafe(24); SESSIONS[token]=time.time()
                 self.send_response(302); self.send_header('Set-Cookie',f'fc_session={token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age={SESSION_TTL}'); self.send_header('Location','/admin'); self.end_headers(); return
             self.send_response(302); self.send_header('Location','/admin-login?error=1'); self.end_headers(); return
