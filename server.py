@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-import os, sqlite3, json, secrets, hashlib, smtplib, time, html, re, cgi, mimetypes
+import os, sqlite3, json, secrets, hashlib, smtplib, time, html, re, mimetypes
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from datetime import datetime, timezone
 from pathlib import Path
 from email.message import EmailMessage
+from email.parser import BytesParser
+from email import policy
 
 ROOT = Path(__file__).resolve().parent
 DATA_DIR = Path(os.environ.get('FOCUS_DATA_DIR', str(ROOT)))
@@ -119,15 +121,23 @@ class Handler(SimpleHTTPRequestHandler):
             try:
                 ctype=self.headers.get('Content-Type','')
                 if not ctype.startswith('multipart/form-data'): return self.send_json({'error':'Use multipart/form-data'},400)
-                form=cgi.FieldStorage(fp=self.rfile,headers=self.headers,environ={'REQUEST_METHOD':'POST','CONTENT_TYPE':ctype,'CONTENT_LENGTH':self.headers.get('Content-Length','0')})
-                kind=form.getfirst('kind','photo').strip(); title=form.getfirst('title','').strip(); description=form.getfirst('description','').strip(); url=form.getfirst('url','').strip(); item=form['file'] if 'file' in form else None
+                length=int(self.headers.get('Content-Length','0'))
+                raw_body=self.rfile.read(length)
+                msg=BytesParser(policy=policy.default).parsebytes(b'Content-Type: '+ctype.encode()+b'\r\nMIME-Version: 1.0\r\n\r\n'+raw_body)
+                fields={}; file_data=None; file_name=''
+                for part in msg.iter_parts():
+                    name=part.get_param('name',header='content-disposition')
+                    if not name: continue
+                    if part.get_filename(): file_name=os.path.basename(part.get_filename()); file_data=part.get_payload(decode=True)
+                    else: fields[name]=part.get_content()
+                kind=str(fields.get('kind','photo')).strip(); title=str(fields.get('title','')).strip(); description=str(fields.get('description','')).strip(); url=str(fields.get('url','')).strip()
                 if kind not in ('photo','video') or not title: return self.send_json({'error':'Type and title are required'},400)
                 filename=''
                 if kind=='photo':
-                    if item is None or not getattr(item,'filename',None): return self.send_json({'error':'Choose an image'},400)
-                    ext=Path(os.path.basename(item.filename)).suffix.lower()
+                    if not file_name or file_data is None: return self.send_json({'error':'Choose an image'},400)
+                    ext=Path(file_name).suffix.lower()
                     if ext not in {'.jpg','.jpeg','.png','.webp','.gif'}: return self.send_json({'error':'Unsupported image format'},400)
-                    filename=secrets.token_hex(10)+ext; (MEDIA_DIR/filename).write_bytes(item.file.read()); url='/media/'+filename
+                    filename=secrets.token_hex(10)+ext; (MEDIA_DIR/filename).write_bytes(file_data); url='/media/'+filename
                 elif not url: return self.send_json({'error':'Video URL is required'},400)
                 now=datetime.now(timezone.utc).isoformat(); c=db(); c.execute('INSERT INTO media(kind,title,description,url,filename,created_at) VALUES(?,?,?,?,?,?)',(kind,title,description,url,filename,now)); c.commit(); c.close(); return self.send_json({'ok':True})
             except Exception as e: return self.send_json({'error':str(e)},500)
