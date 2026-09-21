@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, sqlite3, json, secrets, hashlib, smtplib, time
+import os, sqlite3, json, secrets, hashlib, smtplib, time, html, re, cgi, mimetypes
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from datetime import datetime, timezone
@@ -10,6 +10,8 @@ ROOT = Path(__file__).resolve().parent
 DATA_DIR = Path(os.environ.get('FOCUS_DATA_DIR', str(ROOT)))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 DB = DATA_DIR / 'focusclub.db'
+MEDIA_DIR = DATA_DIR / 'media'
+MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 ADMIN_USER = os.environ.get('FOCUS_ADMIN_USER','admin')
 ADMIN_PASSWORD = os.environ.get('FOCUS_ADMIN_PASSWORD','')
 ADMIN_EMAIL = os.environ.get('FOCUS_ADMIN_EMAIL','')
@@ -52,6 +54,9 @@ def init_db():
     );
     CREATE INDEX IF NOT EXISTS idx_submissions_type ON submissions(type);
     CREATE INDEX IF NOT EXISTS idx_submissions_status ON submissions(status);
+    CREATE TABLE IF NOT EXISTS media (id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL DEFAULT '', url TEXT NOT NULL, filename TEXT NOT NULL DEFAULT '', published INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS blog_posts (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, slug TEXT UNIQUE NOT NULL, excerpt TEXT NOT NULL DEFAULT '', body TEXT NOT NULL, image_url TEXT NOT NULL DEFAULT '', published INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+    CREATE INDEX IF NOT EXISTS idx_blog_published ON blog_posts(published);
     ''')
     c.commit(); c.close()
 
@@ -109,6 +114,42 @@ class Handler(SimpleHTTPRequestHandler):
         n=int(self.headers.get('Content-Length','0')); return json.loads(self.rfile.read(n) or '{}')
     def do_POST(self):
         path=urlparse(self.path).path
+        if path=='/api/media':
+            if not auth_ok(self): return self.send_json({'error':'Unauthorized'},401)
+            try:
+                ctype=self.headers.get('Content-Type','')
+                if not ctype.startswith('multipart/form-data'): return self.send_json({'error':'Use multipart/form-data'},400)
+                form=cgi.FieldStorage(fp=self.rfile,headers=self.headers,environ={'REQUEST_METHOD':'POST','CONTENT_TYPE':ctype,'CONTENT_LENGTH':self.headers.get('Content-Length','0')})
+                kind=form.getfirst('kind','photo').strip(); title=form.getfirst('title','').strip(); description=form.getfirst('description','').strip(); url=form.getfirst('url','').strip(); item=form['file'] if 'file' in form else None
+                if kind not in ('photo','video') or not title: return self.send_json({'error':'Type and title are required'},400)
+                filename=''
+                if kind=='photo':
+                    if item is None or not getattr(item,'filename',None): return self.send_json({'error':'Choose an image'},400)
+                    ext=Path(os.path.basename(item.filename)).suffix.lower()
+                    if ext not in {'.jpg','.jpeg','.png','.webp','.gif'}: return self.send_json({'error':'Unsupported image format'},400)
+                    filename=secrets.token_hex(10)+ext; (MEDIA_DIR/filename).write_bytes(item.file.read()); url='/media/'+filename
+                elif not url: return self.send_json({'error':'Video URL is required'},400)
+                now=datetime.now(timezone.utc).isoformat(); c=db(); c.execute('INSERT INTO media(kind,title,description,url,filename,created_at) VALUES(?,?,?,?,?,?)',(kind,title,description,url,filename,now)); c.commit(); c.close(); return self.send_json({'ok':True})
+            except Exception as e: return self.send_json({'error':str(e)},500)
+        if path=='/api/admin/media/delete':
+            if not auth_ok(self): return self.send_json({'error':'Unauthorized'},401)
+            x=self.body_json(); c=db(); row=c.execute('SELECT filename FROM media WHERE id=?',(int(x.get('id')),)).fetchone(); c.execute('DELETE FROM media WHERE id=?',(int(x.get('id')),)); c.commit(); c.close()
+            if row and row['filename']:
+                try: (MEDIA_DIR/row['filename']).unlink()
+                except FileNotFoundError: pass
+            return self.send_json({'ok':True})
+        if path=='/api/admin/blog':
+            if not auth_ok(self): return self.send_json({'error':'Unauthorized'},401)
+            x=self.body_json(); title=str(x.get('title','')).strip(); body=str(x.get('body','')).strip(); excerpt=str(x.get('excerpt','')).strip(); image=str(x.get('image_url','')).strip(); published=1 if x.get('published') else 0
+            if not title or not body: return self.send_json({'error':'Title and article body are required'},400)
+            slug=re.sub(r'[^a-z0-9]+','-',title.lower()).strip('-') or 'post-'+secrets.token_hex(4); now=datetime.now(timezone.utc).isoformat(); c=db()
+            try: c.execute('INSERT INTO blog_posts(title,slug,excerpt,body,image_url,published,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)',(title,slug,excerpt,body,image,published,now,now)); c.commit()
+            except sqlite3.IntegrityError: c.close(); return self.send_json({'error':'A post with that title already exists'},400)
+            c.close(); return self.send_json({'ok':True,'slug':slug})
+        if path=='/api/admin/blog/delete':
+            if not auth_ok(self): return self.send_json({'error':'Unauthorized'},401)
+            x=self.body_json(); c=db(); c.execute('DELETE FROM blog_posts WHERE id=?',(int(x.get('id')),)); c.commit(); c.close(); return self.send_json({'ok':True})
+        if path=='/api/submit':
         if path=='/api/submit':
             try:
                 x=self.body_json(); typ=x.get('type','').strip(); data=x.get('data',{})
@@ -140,7 +181,15 @@ class Handler(SimpleHTTPRequestHandler):
             cookie=self.headers.get('Cookie',''); token=next((x.split('=',1)[1] for x in cookie.split('; ') if x.startswith('fc_session=')),None)
             if token: SESSIONS.pop(token,None)
             self.send_response(302); self.send_header('Set-Cookie','fc_session=; Max-Age=0; HttpOnly; SameSite=Lax'); self.send_header('Location','/admin-login'); self.end_headers(); return
+        if path.startswith('/media/'):
+            fn=os.path.basename(path); fp=MEDIA_DIR/fn
+            if fp.exists() and fp.is_file():
+                raw=fp.read_bytes(); self.send_response(200); self.send_header('Content-Type',mimetypes.guess_type(str(fp))[0] or 'application/octet-stream'); self.send_header('Content-Length',str(len(raw))); self.end_headers(); self.wfile.write(raw); return
+            self.send_error(404); return
+        if path=='/api/content':
+            c=db(); photos=[dict(x) for x in c.execute("SELECT id,title,description,url FROM media WHERE kind='photo' AND published=1 ORDER BY created_at DESC")]; videos=[dict(x) for x in c.execute("SELECT id,title,description,url FROM media WHERE kind='video' AND published=1 ORDER BY created_at DESC")]; posts=[dict(x) for x in c.execute("SELECT id,title,slug,excerpt,body,image_url,created_at FROM blog_posts WHERE published=1 ORDER BY created_at DESC")]; c.close(); return self.send_json({'photos':photos,'videos':videos,'posts':posts})
         if path=='/admin-login':
+
             err='Invalid login.' if parse_qs(urlparse(self.path).query).get('error') else ''
             body=f'''<header><a href="/" class="admin-brand" aria-label="100% Focus Club home"><img class="admin-emblem" src="/100_Focus_Club_Emblem_Transparent.png" alt=""><img class="admin-wordmark" src="/100_Focus_Club_Wordmark_Transparent.png" alt="100% Focus Club"></a></header><main><div class="card"><h1>Admin Login</h1><p>{err}</p><form method="post" action="/admin-login"><p><input name="username" placeholder="Username" required></p><p><input type="password" name="password" placeholder="Password" required></p><button class="btn">Sign in</button></form></div></main>'''
             # browser form posts urlencoded; handle below via do_POST replacement isn't parsing it, so provide JS JSON form
