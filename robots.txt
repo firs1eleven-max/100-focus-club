@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin-login
+Disallow: /admin/status
+Disallow: /admin-logout
+
+Sitemap: https://one00-focus-club.onrender.com/sitemap.xml
