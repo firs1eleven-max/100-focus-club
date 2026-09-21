@@ -133,7 +133,7 @@ class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         path=urlparse(self.path).path
         if path=='/health':
-            return self.send_json({'ok': True, 'service': '100% Focus Club', 'time': datetime.now(timezone.utc).isoformat()})
+            return self.send_json({'ok': True})
         if path=='/admin-logout':
             cookie=self.headers.get('Cookie',''); token=next((x.split('=',1)[1] for x in cookie.split('; ') if x.startswith('fc_session=')),None)
             if token: SESSIONS.pop(token,None)
@@ -161,5 +161,5 @@ class Handler(SimpleHTTPRequestHandler):
         return super().do_GET()
 
 if __name__=='__main__':
-    init_db(); print(f'100% Focus Club running at http://localhost:{PORT}'); print(f'Admin: http://localhost:{PORT}/admin-login'); print(f'Admin username: {ADMIN_USER}'); print('Set FOCUS_ADMIN_PASSWORD before deployment; the server will refuse admin login if it is empty.')
+    init_db(); print(f'100% Focus Club running at http://localhost:{PORT}'); print(f'Admin: http://localhost:{PORT}/admin-login'); print('Set FOCUS_ADMIN_PASSWORD before deployment; the server will refuse admin login if it is empty.')
     ThreadingHTTPServer(('0.0.0.0',PORT),Handler).serve_forever()
