@@ -18,7 +18,7 @@ SMTP_PORT = int(os.environ.get('SMTP_PORT','587'))
 SMTP_USER = os.environ.get('SMTP_USER','')
 SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD','')
 SMTP_FROM = os.environ.get('SMTP_FROM', SMTP_USER)
-PORT = int(os.environ.get('PORT','8080'))
+PORT = int(os.environ.get('PORT','10000'))
 SESSIONS = {}
 SESSION_TTL = int(os.environ.get('SESSION_TTL','28800'))
 
