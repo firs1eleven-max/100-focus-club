@@ -1,4 +1,4 @@
-# 100% Focus Club — Phase 4 deployment package
+# 100% Focus Club — Deployment
 
 This package is prepared for deployment as a small Python web application.
 
