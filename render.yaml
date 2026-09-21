@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: 100-focus-club
+    runtime: docker
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: FOCUS_ADMIN_USER
+        sync: false
+      - key: FOCUS_ADMIN_PASSWORD
+        sync: false
+      - key: FOCUS_ADMIN_EMAIL
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: SESSION_TTL
+        value: "28800"
+    disk:
+      name: focusclub-data
+      mountPath: /data
+      sizeGB: 1
