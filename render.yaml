@@ -5,6 +5,8 @@ services:
     plan: starter
     healthCheckPath: /health
     envVars:
+      - key: FOCUS_DATA_DIR
+        value: /data
       - key: FOCUS_ADMIN_USER
         sync: false
       - key: FOCUS_ADMIN_PASSWORD
