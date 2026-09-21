@@ -1,8 +1,8 @@
-# 100% Focus Club — Phase 3
+# 100% Focus Club — Lead Management
 
-Phase 3 adds practical lead management and communication readiness on top of Phase 2.
+This package provides practical lead management and communication readiness.
 
-## Added in Phase 3
+## Included
 - Admin sign-out.
 - Submission filtering by type and status.
 - Admin notes on every submission.
