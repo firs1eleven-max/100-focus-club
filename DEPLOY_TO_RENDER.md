@@ -1,4 +1,4 @@
-# 100% Focus Club — Phase 5 Public Launch
+# 100% Focus Club — Render Deployment
 
 This package is prepared for deployment on Render. A Render account and a domain are still required; credentials are intentionally not included.
 
