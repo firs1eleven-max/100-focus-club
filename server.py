@@ -193,9 +193,15 @@ class Handler(SimpleHTTPRequestHandler):
                 return self.send_json({'ok':True,'reference':reference,'notification_sent':ok})
             except Exception as e: return self.send_json({'error':str(e)},500)
         if path=='/admin/login':
-            x=self.body_json()
+            ctype=self.headers.get('Content-Type','').lower()
+            if ctype.startswith('application/json'):
+                x=self.body_json()
+            else:
+                n=int(self.headers.get('Content-Length','0'))
+                raw=self.rfile.read(n).decode('utf-8','replace')
+                x={k:(v[0] if isinstance(v,list) else v) for k,v in parse_qs(raw).items()}
             username = str(x.get('username','')).strip()
-            password = str(x.get('password','')).strip()
+            password = str(x.get('password',''))
             if ADMIN_PASSWORD and username.casefold()==ADMIN_USER.strip().casefold() and secrets.compare_digest(password, ADMIN_PASSWORD):
                 token=secrets.token_urlsafe(24); SESSIONS[token]=time.time()
                 self.send_response(302); self.send_header('Set-Cookie',f'fc_session={token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age={SESSION_TTL}'); self.send_header('Location','/admin'); self.end_headers(); return
@@ -252,9 +258,8 @@ async function deleteMedia(id,button){{if(!confirm('Permanently delete this phot
         if path=='/admin-login':
 
             err='Invalid login.' if parse_qs(urlparse(self.path).query).get('error') else ''
-            body=f'''<header class="admin-header"><div class="admin-header-inner"><a href="/" class="admin-brand" aria-label="100% Focus Club home"><img class="admin-emblem" src="/100_Focus_Club_Emblem_Transparent.png" alt=""><img class="admin-wordmark" src="/100_Focus_Club_Wordmark_Transparent.png" alt="100% Focus Club"></a><nav class="admin-nav" aria-label="Admin navigation"><a href="/admin">Submissions</a><a href="/admin-content" class="admin-primary">Website Content</a><a href="/" target="_blank" rel="noopener">View Site</a><a href="/admin-logout">Sign Out</a></nav></div></header><main><div class="card"><h1>Admin Login</h1><p>{err}</p><form method="post" action="/admin-login"><p><input name="username" placeholder="Username" required></p><p><input type="password" name="password" placeholder="Password" required></p><button class="btn">Sign in</button></form></div></main>'''
-            # browser form posts urlencoded; handle below via do_POST replacement isn't parsing it, so provide JS JSON form
-            body=body.replace('<form method="post" action="/admin-login">','<form id="f"><script>document.addEventListener("DOMContentLoaded",()=>document.getElementById("f").addEventListener("submit",async e=>{{e.preventDefault();let f=e.target;let r=await fetch("/admin/login",{{method:"POST",headers:{{"Content-Type":"application/json"}},body:JSON.stringify({{username:f.username.value,password:f.password.value}})}});location.href=r.redirected?r.url:"/admin-login?error=1"}}))</script>')
+            body=f'''<header class="admin-header"><div class="admin-header-inner"><a href="/" class="admin-brand" aria-label="100% Focus Club home"><img class="admin-emblem" src="/100_Focus_Club_Emblem_Transparent.png" alt=""><img class="admin-wordmark" src="/100_Focus_Club_Wordmark_Transparent.png" alt="100% Focus Club"></a><nav class="admin-nav" aria-label="Admin navigation"><a href="/admin">Submissions</a><a href="/admin-content" class="admin-primary">Website Content</a><a href="/" target="_blank" rel="noopener">View Site</a><a href="/admin-logout">Sign Out</a></nav></div></header><main><div class="card"><h1>Admin Login</h1><p>{err}</p><form method="post" action="/admin/login"><p><input name="username" placeholder="Username" required></p><p><input type="password" name="password" placeholder="Password" required></p><button class="btn">Sign in</button></form></div></main>'''
+            # The login form posts directly to the JSON/form-compatible login endpoint; no client-side JavaScript is required.
             raw=html_page('Admin Login',body).encode(); self.send_response(200); self.send_header('Content-Type','text/html'); self.send_header('Content-Length',str(len(raw))); self.end_headers(); self.wfile.write(raw); return
         if path=='/admin':
             if not auth_ok(self): self.send_response(302); self.send_header('Location','/admin-login'); self.end_headers(); return
