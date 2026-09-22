@@ -106,3 +106,6 @@ width:100%!important;
 .btn-payment{width:100%;margin-top:auto;background:#eef1f5;color:#667085;cursor:not-allowed;box-shadow:none}
 .btn-payment:hover{transform:none;box-shadow:none}
 .donate-card{min-height:285px}
+
+/* Donation flow */
+.donation-options-hidden{display:none}.donation-options-hidden.is-visible{display:block}
