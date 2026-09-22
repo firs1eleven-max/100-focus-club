@@ -68,6 +68,8 @@ def init_db():
     CREATE TABLE IF NOT EXISTS blog_posts (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, slug TEXT UNIQUE NOT NULL, excerpt TEXT NOT NULL DEFAULT '', body TEXT NOT NULL, image_url TEXT NOT NULL DEFAULT '', published INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
     CREATE INDEX IF NOT EXISTS idx_blog_published ON blog_posts(published);
     ''')
+    c.execute('PRAGMA journal_mode=WAL')
+    c.execute('PRAGMA synchronous=FULL')
     c.commit(); c.close()
 
 def ref(prefix):
@@ -193,7 +195,15 @@ class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         path=urlparse(self.path).path
         if path=='/health':
-            return self.send_json({'ok': True})
+            try:
+                c=db()
+                submission_count=c.execute('SELECT COUNT(*) n FROM submissions').fetchone()['n']
+                media_count=c.execute('SELECT COUNT(*) n FROM media').fetchone()['n']
+                blog_count=c.execute('SELECT COUNT(*) n FROM blog_posts').fetchone()['n']
+                c.close()
+                return self.send_json({'ok': True, 'storage': 'persistent-data-dir' if DATA_DIR_ENV else 'application-filesystem', 'data_dir': str(DATA_DIR), 'db_path': str(DB), 'db_exists': DB.exists(), 'db_bytes': DB.stat().st_size if DB.exists() else 0, 'submissions': submission_count, 'media': media_count, 'blog_posts': blog_count})
+            except Exception as e:
+                return self.send_json({'ok': False, 'error': str(e), 'data_dir': str(DATA_DIR), 'db_path': str(DB)}, 500)
         if path=='/admin-logout':
             cookie=self.headers.get('Cookie',''); token=next((x.split('=',1)[1] for x in cookie.split('; ') if x.startswith('fc_session=')),None)
             if token: SESSIONS.pop(token,None)
