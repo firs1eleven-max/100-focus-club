@@ -159,7 +159,8 @@ class Handler(SimpleHTTPRequestHandler):
             except Exception as e: return self.send_json({'error':str(e)},500)
         if path=='/api/admin/media/delete':
             if not auth_ok(self): return self.send_json({'error':'Unauthorized'},401)
-            x=self.body_json(); c=db(); row=c.execute('SELECT filename FROM media WHERE id=?',(int(x.get('id')),)).fetchone(); c.execute('DELETE FROM media WHERE id=?',(int(x.get('id')),)); c.commit(); c.close()
+            x=self.body_json(); c=db(); row=c.execute('SELECT filename FROM media WHERE id=?',(int(x.get('id')),)).fetchone()
+            c.execute('DELETE FROM media WHERE id=?',(int(x.get('id')),)); c.commit(); c.close()
             if row and row['filename']:
                 try: (MEDIA_DIR/row['filename']).unlink()
                 except FileNotFoundError: pass
@@ -174,7 +175,12 @@ class Handler(SimpleHTTPRequestHandler):
             c.close(); return self.send_json({'ok':True,'slug':slug})
         if path=='/api/admin/blog/delete':
             if not auth_ok(self): return self.send_json({'error':'Unauthorized'},401)
-            x=self.body_json(); c=db(); c.execute('DELETE FROM blog_posts WHERE id=?',(int(x.get('id')),)); c.commit(); c.close(); return self.send_json({'ok':True})
+            x=self.body_json(); c=db(); row=c.execute('SELECT image_url FROM blog_posts WHERE id=?',(int(x.get('id')),)).fetchone()
+            c.execute('DELETE FROM blog_posts WHERE id=?',(int(x.get('id')),)); c.commit(); c.close()
+            if row and row['image_url'].startswith('/media/'):
+                try: (MEDIA_DIR/row['image_url'].split('/media/',1)[1]).unlink()
+                except FileNotFoundError: pass
+            return self.send_json({'ok':True})
         if path=='/api/submit':
             try:
                 x=self.body_json(); typ=x.get('type','').strip(); data=x.get('data',{})
