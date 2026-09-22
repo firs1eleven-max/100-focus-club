@@ -208,8 +208,8 @@
     const r=await fetch('/api/content'); if(!r.ok)return;
     const d=await r.json();
     const posts=document.getElementById('latest-posts'), videos=document.getElementById('latest-videos'), photos=document.getElementById('latest-photos');
-    posts.innerHTML=d.posts.map(p=>'<article class="content-card">'+(p.image_url?'<img src="'+p.image_url+'" alt="">':'')+'<div><p class="eyebrow">BLOG</p><h3>'+escapeHtml(p.title)+'</h3><p>'+escapeHtml(p.excerpt||p.body.slice(0,180))+'</p></div></article>').join('');
-    videos.innerHTML=d.videos.map(v=>'<article class="content-card"><div class="video-frame">'+embedVideo(v.url)+'</div><div><p class="eyebrow">VIDEO</p><h3>'+escapeHtml(v.title)+'</h3><p>'+escapeHtml(v.description||'')+'</p></div></article>').join('');
+    posts.innerHTML=d.posts.map(p=>'<article class="content-card blog-card"><div class="content-card-header"><p class="eyebrow">BLOG</p><h3>'+escapeHtml(p.title)+'</h3></div>'+(p.image_url?'<img src="'+p.image_url+'" alt="'+escapeHtml(p.title)+'">':'')+'<div class="content-card-body"><p>'+escapeHtml(p.excerpt||p.body.slice(0,180))+'</p></div></article>').join('');
+    videos.innerHTML=d.videos.map(v=>'<article class="content-card video-card"><div class="content-card-header"><p class="eyebrow">VIDEO</p><h3>'+escapeHtml(v.title)+'</h3></div><div class="video-frame">'+embedVideo(v.url)+'</div><div class="content-card-body"><p>'+escapeHtml(v.description||'')+'</p></div></article>').join('');
     photos.innerHTML=d.photos.map(p=>'<figure><img src="'+p.url+'" alt="'+escapeHtml(p.title)+'"><figcaption>'+escapeHtml(p.title)+'</figcaption></figure>').join('');
     if(!d.posts.length&&!d.videos.length&&!d.photos.length) document.getElementById('stories').style.display='none';
   }catch(e){}
