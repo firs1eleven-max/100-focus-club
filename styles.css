@@ -109,3 +109,17 @@ width:100%!important;
 
 /* Donation flow */
 .donation-options-hidden{display:none}.donation-options-hidden.is-visible{display:block}
+
+/* Payment choices stay quietly inside the donor/support form */
+.sponsor-payment-options{margin:8px 0 0;padding:18px;border:1px solid var(--line);border-radius:14px;background:#fbfbfa}
+.sponsor-payment-options legend{padding:0 6px;font:700 16px Montserrat,Inter,sans-serif;color:var(--navy)}
+.payment-intro{margin:2px 0 12px;font-size:12px;color:var(--muted)}
+.sponsor-payment-options .donate-grid{grid-template-columns:1fr 1fr;gap:10px}
+.sponsor-payment-options .donate-card{min-height:0;padding:14px;border:1px solid var(--line);border-top:2px solid var(--amber);border-radius:12px;box-shadow:none}
+.sponsor-payment-options .donate-card h3{font-size:15px;margin:7px 0 5px}
+.sponsor-payment-options .donate-card p{font-size:12px;line-height:1.45}
+.sponsor-payment-options .donate-icon{font-size:10px}
+.sponsor-payment-options .btn-payment{font-size:11px;padding:9px 10px;margin-top:10px}
+.donation-options-hidden{display:none}
+.donation-options-hidden.is-visible{display:block}
+@media(max-width:720px){.sponsor-payment-options .donate-grid{grid-template-columns:1fr}}
