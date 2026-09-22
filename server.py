@@ -9,8 +9,14 @@ from email.parser import BytesParser
 from email import policy
 
 ROOT = Path(__file__).resolve().parent
-DATA_DIR = Path(os.environ.get('FOCUS_DATA_DIR', str(ROOT)))
-DATA_DIR.mkdir(parents=True, exist_ok=True)
+DATA_DIR_ENV = os.environ.get('FOCUS_DATA_DIR', '').strip()
+if DATA_DIR_ENV:
+    DATA_DIR = Path(DATA_DIR_ENV)
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    if not os.access(DATA_DIR, os.W_OK):
+        raise RuntimeError('FOCUS_DATA_DIR is not writable: ' + str(DATA_DIR))
+else:
+    DATA_DIR = ROOT
 DB = DATA_DIR / 'focusclub.db'
 MEDIA_DIR = DATA_DIR / 'media'
 MEDIA_DIR.mkdir(parents=True, exist_ok=True)
@@ -27,8 +33,10 @@ SESSIONS = {}
 SESSION_TTL = int(os.environ.get('SESSION_TTL','28800'))
 
 def db():
-    c=sqlite3.connect(DB)
+    c=sqlite3.connect(DB, timeout=30)
     c.row_factory=sqlite3.Row
+    c.execute('PRAGMA foreign_keys=ON')
+    c.execute('PRAGMA busy_timeout=30000')
     return c
 
 def init_db():
