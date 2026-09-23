@@ -6,7 +6,7 @@ const cf=document.querySelector('#contact-form');if(cf)cf.addEventListener('subm
 function animateImpactCounters(){const counters=document.querySelectorAll('.impact-counter');if(!counters.length)return;const duration=1800;const start=performance.now();const tick=now=>{const progress=Math.min((now-start)/duration,1);counters.forEach((el,index)=>{if(progress<1){const value=Math.floor((1-Math.pow(1-progress,3))*(18+index*11));el.textContent=String(value).padStart(2,'0');}else{el.textContent=el.dataset.final||'Growing';}});if(progress<1)requestAnimationFrame(tick)};requestAnimationFrame(tick)}
 const impact=document.querySelector('.impact');if(impact){const observer=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.isIntersecting)){animateImpactCounters();observer.disconnect()}},{threshold:.25});observer.observe(impact)}
 
-/* Keep the primary navigation in sync with clicks and the section currently on screen. */
+/* Keep the primary navigation in sync with clicks and the section nearest the reading line. */
 const navLinks=[...document.querySelectorAll('.nav a[href^="#"]')];
 const navSections=navLinks.map(link=>{
   const id=link.getAttribute('href').slice(1);
@@ -24,45 +24,50 @@ function setActiveNav(link){
 }
 
 let clickedNavTarget=null;
+let navTicking=false;
 
-if(navSections.length){
-  const navObserver=new IntersectionObserver(entries=>{
-    const visible=entries
-      .filter(entry=>entry.isIntersecting)
-      .sort((a,b)=>b.intersectionRatio-a.intersectionRatio);
+function updateActiveNav(){
+  if(!navSections.length)return;
+  const readingLine=Math.max(96,window.innerHeight*0.28);
+  let current=null;
+  let bestDistance=Infinity;
 
-    if(clickedNavTarget){
-      const targetEntry=entries.find(entry=>entry.target===clickedNavTarget.section && entry.isIntersecting);
-      if(targetEntry){
-        setActiveNav(clickedNavTarget.link);
-        clickedNavTarget=null;
-      }
-      return;
+  navSections.forEach(item=>{
+    const rect=item.section.getBoundingClientRect();
+    const distance=Math.abs(rect.top-readingLine);
+    if(rect.top<=readingLine && rect.bottom>readingLine && distance<bestDistance){
+      current=item; bestDistance=distance;
     }
-
-    if(visible.length){
-      const match=navSections.find(item=>item.section===visible[0].target);
-      if(match)setActiveNav(match.link);
-    }
-  },{
-    root:null,
-    rootMargin:'-25% 0px -55% 0px',
-    threshold:[0,.15,.35,.6]
   });
 
-  navSections.forEach(item=>navObserver.observe(item.section));
+  if(!current){
+    const passed=navSections.filter(item=>item.section.getBoundingClientRect().top<=readingLine);
+    current=passed[passed.length-1]||navSections[0];
+  }
 
+  if(current)setActiveNav(current.link);
+}
+
+if(navSections.length){
   navLinks.forEach(link=>{
     link.addEventListener('click',()=>{
       const match=navSections.find(item=>item.link===link);
       if(match){
         clickedNavTarget=match;
         setActiveNav(link);
+        setTimeout(()=>{clickedNavTarget=null;updateActiveNav()},700);
       }
     });
   });
+  window.addEventListener('scroll',()=>{
+    if(!navTicking){
+      navTicking=true;
+      requestAnimationFrame(()=>{navTicking=false;updateActiveNav()});
+    }
+  },{passive:true});
+  window.addEventListener('resize',updateActiveNav);
+  updateActiveNav();
 }
-
 
 /* Accessibility controller — supports all display options and keeps old settings compatible. */
 (function(){
@@ -70,6 +75,8 @@ if(navSections.length){
   const panel=document.querySelector('#accessibility-panel');
   const close=document.querySelector('.accessibility-close');
   const controls=[...document.querySelectorAll('[data-a11y]')];
+  const forms=[...document.querySelectorAll('form')];
+  let generatedId=0;
   if(!toggle||!panel)return;
   const storageKey='focusclub-accessibility';
   const defaults={larger:false,contrast:false,underline:false,reduce:false,spacing:false,grayscale:false,cursor:false,focus:false};
@@ -88,6 +95,26 @@ if(navSections.length){
     'reduce-motion':'reduce','text-spacing':'spacing','grayscale':'grayscale',
     'large-cursor':'cursor','focus-highlight':'focus'
   };
+  function enhanceForms(){
+    forms.forEach(form=>{
+      form.querySelectorAll('input,select,textarea').forEach(control=>{
+        if(control.type==='hidden'||control.type==='checkbox'||control.dataset.a11yEnhanced)return;
+        control.dataset.a11yEnhanced='true';
+        const existing=control.id?form.querySelector(`label[for="${CSS.escape(control.id)}"]`):null;
+        if(existing)return;
+        if(!control.id)control.id=`a11y-field-${++generatedId}`;
+        const label=document.createElement('label');
+        label.className='sr-only';
+        label.htmlFor=control.id;
+        const name=control.getAttribute('name')||'';
+        const placeholder=control.getAttribute('placeholder')||'';
+        const fallback=name.replace(/[-_]/g,' ').replace(/\b\w/g,m=>m.toUpperCase());
+        label.textContent=placeholder||fallback||'Form field';
+        form.insertBefore(label,control);
+        if(name)control.setAttribute('autocomplete',name==='email'?'email':name==='phone'?'tel':name==='name'?'name':name==='city'?'address-level2':'off');
+      });
+    });
+  }
   function apply(){
     Object.entries(classMap).forEach(([key,cls])=>document.body.classList.toggle(cls,!!state[key]));
     controls.forEach(btn=>{
@@ -115,5 +142,6 @@ if(navSections.length){
     apply();
   }));
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)closePanel()});
+  enhanceForms();
   apply();
 })();
