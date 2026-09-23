@@ -64,8 +64,7 @@ if(navSections.length){
 }
 
 
-/* Built-in accessibility controls: display preferences, not a separate replacement website. */
-
+/* Accessibility controller — supports all display options and keeps old settings compatible. */
 (function(){
   const toggle=document.querySelector('.accessibility-toggle');
   const panel=document.querySelector('#accessibility-panel');
@@ -73,34 +72,46 @@ if(navSections.length){
   const controls=[...document.querySelectorAll('[data-a11y]')];
   if(!toggle||!panel)return;
   const storageKey='focusclub-accessibility';
-  let state={larger:false,contrast:false,underline:false,reduce:false};
-  try{state={...state,...JSON.parse(localStorage.getItem(storageKey)||'{}')}}catch(e){}
-  const classMap={larger:'a11y-larger-text',contrast:'a11y-high-contrast',underline:'a11y-underline-links',reduce:'a11y-reduce-motion'};
+  const defaults={larger:false,contrast:false,underline:false,reduce:false,spacing:false,grayscale:false,cursor:false,focus:false};
+  let state={...defaults};
+  try{
+    const saved=JSON.parse(localStorage.getItem(storageKey)||'{}');
+    if(saved&&typeof saved==='object')state={...state,...saved};
+  }catch(e){}
+  const classMap={
+    larger:'a11y-larger-text',contrast:'a11y-high-contrast',underline:'a11y-underline-links',
+    reduce:'a11y-reduce-motion',spacing:'a11y-text-spacing',grayscale:'a11y-grayscale',
+    cursor:'a11y-large-cursor',focus:'a11y-focus-highlight'
+  };
+  const keyForButton={
+    'text-larger':'larger','high-contrast':'contrast','underline-links':'underline',
+    'reduce-motion':'reduce','text-spacing':'spacing','grayscale':'grayscale',
+    'large-cursor':'cursor','focus-highlight':'focus'
+  };
   function apply(){
     Object.entries(classMap).forEach(([key,cls])=>document.body.classList.toggle(cls,!!state[key]));
     controls.forEach(btn=>{
-      const key=btn.dataset.a11y;
-      btn.dataset.active=key==='reset'?'false':String(!!state[key]);
-      if(key!=='reset')btn.setAttribute('aria-pressed',String(!!state[key]));
+      const key=keyForButton[btn.dataset.a11y];
+      if(key){
+        btn.dataset.active=String(!!state[key]);
+        btn.setAttribute('aria-pressed',String(!!state[key]));
+      }else if(btn.dataset.a11y==='reset'){
+        btn.dataset.active='false';
+      }
     });
     try{localStorage.setItem(storageKey,JSON.stringify(state))}catch(e){}
   }
-  function openPanel(){
-    panel.hidden=false;
-    toggle.setAttribute('aria-expanded','true');
-    setTimeout(()=>controls[0]?.focus(),0);
-  }
-  function closePanel(){
-    panel.hidden=true;
-    toggle.setAttribute('aria-expanded','false');
-    toggle.focus();
-  }
+  function openPanel(){panel.hidden=false;toggle.setAttribute('aria-expanded','true');}
+  function closePanel(){panel.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.focus();}
   toggle.addEventListener('click',()=>panel.hidden?openPanel():closePanel());
   close?.addEventListener('click',closePanel);
   controls.forEach(btn=>btn.addEventListener('click',()=>{
-    const key=btn.dataset.a11y;
-    if(key==='reset')state={larger:false,contrast:false,underline:false,reduce:false};
-    else state[key]=!state[key];
+    const action=btn.dataset.a11y;
+    if(action==='reset') state={...defaults};
+    else {
+      const key=keyForButton[action];
+      if(key) state[key]=!state[key];
+    }
     apply();
   }));
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)closePanel()});
