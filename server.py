@@ -248,11 +248,39 @@ class Handler(SimpleHTTPRequestHandler):
             for r in blog_rows:
                 blog_cards += f'<article class="content-manage-item"><div><strong>{r["title"]}</strong><span class="content-type">Blog</span></div><p>{r["excerpt"] or ""}</p><p>{"Published" if r["published"] else "Draft"}</p><p><button class="btn" type="button" onclick="deleteBlog({r["id"]},this)">Delete Permanently</button></p></article>'
             body=f'''<header class="admin-header"><div class="admin-header-inner"><a href="/" class="admin-brand" aria-label="100% Focus Club home"><img class="admin-emblem" src="/100_Focus_Club_Emblem_Transparent.png" alt=""><img class="admin-wordmark" src="/100_Focus_Club_Wordmark_Transparent.png" alt="100% Focus Club"></a><nav class="admin-nav" aria-label="Admin navigation"><a href="/admin">Submissions</a><a href="/admin-content" class="admin-primary">Website Content</a><a href="/" target="_blank" rel="noopener">View Site</a><a href="/admin-logout">Sign Out</a></nav></div></header><main><h1>Website Content</h1><div class="card"><h2>📸 Add Photo</h2><form id="photo" enctype="multipart/form-data"><input type="hidden" name="kind" value="photo"><input required name="title" placeholder="Photo title"><input name="description" placeholder="Caption"><input required type="file" name="file" accept="image/jpeg,image/png,image/webp,image/gif"><button class="btn">Upload Photo</button><span id="pm"></span></form></div><div class="card"><h2>🎥 Add Video</h2><form id="video"><input type="hidden" name="kind" value="video"><input required name="title" placeholder="Video title"><input name="description" placeholder="Description"><input required name="url" placeholder="YouTube or Vimeo URL"><button class="btn">Add Video</button><span id="vm"></span></form></div><div class="card"><h2>📝 Create Blog Post</h2><form id="blog"><input required name="title" placeholder="Post title"><input name="excerpt" placeholder="Short excerpt"><input name="image_url" placeholder="Featured image URL"><textarea required name="body" placeholder="Write your article"></textarea><label><input type="checkbox" name="published" checked> Publish now</label><button class="btn">Publish Post</button><span id="bm"></span></form></div><div class="card"><h2>Published &amp; Uploaded Content</h2><p>Manage content already added to the website. You can permanently delete photos, videos and articles after confirming the action. Permanent deletion cannot be undone.</p><div class="content-manage-list">{media_cards}{blog_cards}</div></div><script>
-async function send(form,id){{let r=await fetch('/api/media',{{method:'POST',body:new FormData(form)}});document.getElementById(id).textContent=r.ok?' Saved':' Failed';if(r.ok)location.reload()}}
-photo.onsubmit=e=>{{e.preventDefault();send(photo,'pm')}}; video.onsubmit=e=>{{e.preventDefault();send(video,'vm')}};
-blog.onsubmit=async e=>{{e.preventDefault();let f=new FormData(blog),x=Object.fromEntries(f.entries());x.published=f.get('published')==='on';let r=await fetch('/api/admin/blog',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify(x)}});bm.textContent=r.ok?' Published':' Failed';if(r.ok)location.reload()}};
-async function deleteMedia(id,button){{if(!confirm('Permanently delete this photo/video? This cannot be undone.'))return;button.disabled=true;let r=await fetch('/api/admin/media/delete',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{id}})}});if(r.ok)location.reload();else{{button.disabled=false;alert('Delete failed.')}}}};
-async function deleteBlog(id,button){{if(!confirm('Permanently delete this article? This cannot be undone.'))return;button.disabled=true;let r=await fetch('/api/admin/blog/delete',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{id}})}});if(r.ok)location.reload();else{{button.disabled=false;alert('Delete failed.')}}}};
+async function responseMessage(r,okText,failPrefix){{
+  let data={{}};
+  try{{data=await r.json()}}catch(e){{}}
+  return r.ok ? okText : (failPrefix+(data.error?': '+data.error:' (HTTP '+r.status+')'));
+}}
+async function send(form,id){{
+  const message=document.getElementById(id); const button=form.querySelector('button[type="submit"]');
+  button.disabled=true; message.textContent='Saving…';
+  try{{
+    const r=await fetch('/api/media',{{method:'POST',body:new FormData(form)}});
+    if(r.ok){{message.textContent=' Saved';location.reload()}}
+    else{{message.textContent=await responseMessage(r,'','Failed')}}
+  }}catch(e){{message.textContent='Failed: Network error'}}
+  finally{{button.disabled=false}}
+}}
+document.getElementById('photo').addEventListener('submit',e=>{{e.preventDefault();send(e.currentTarget,'pm')}});
+document.getElementById('video').addEventListener('submit',e=>{{e.preventDefault();send(e.currentTarget,'vm')}});
+document.getElementById('blog').addEventListener('submit',async e=>{{
+  e.preventDefault();
+  const form=e.currentTarget, message=document.getElementById('bm'), button=form.querySelector('button[type="submit"]');
+  button.disabled=true; message.textContent='Publishing…';
+  try{{
+    const f=new FormData(form);
+    const x=Object.fromEntries(f.entries());
+    x.published=f.get('published')==='on';
+    const r=await fetch('/api/admin/blog',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify(x)}});
+    if(r.ok){{message.textContent=' Published';location.reload()}}
+    else{{message.textContent=await responseMessage(r,'','Failed')}}
+  }}catch(e){{message.textContent='Failed: Network error'}}
+  finally{{button.disabled=false}}
+}});
+async function deleteMedia(id,button){{if(!confirm('Permanently delete this photo/video? This cannot be undone.'))return;button.disabled=true;let r=await fetch('/api/admin/media/delete',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{id}})}});if(r.ok)location.reload();else{{button.disabled=false;alert(await responseMessage(r,'','Delete failed'))}}}};
+async function deleteBlog(id,button){{if(!confirm('Permanently delete this article? This cannot be undone.'))return;button.disabled=true;let r=await fetch('/api/admin/blog/delete',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{id}})}});if(r.ok)location.reload();else{{button.disabled=false;alert(await responseMessage(r,'','Delete failed'))}}}};
 </script></main>'''
             raw=html_page('Website Content',body).encode(); self.send_response(200); self.send_header('Content-Type','text/html'); self.send_header('Content-Length',str(len(raw))); self.end_headers(); self.wfile.write(raw); return
             raw=html_page('Website Content',body).encode(); self.send_response(200); self.send_header('Content-Type','text/html'); self.send_header('Content-Length',str(len(raw))); self.end_headers(); self.wfile.write(raw); return
