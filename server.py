@@ -184,7 +184,7 @@ class Handler(SimpleHTTPRequestHandler):
         if path=='/api/submit':
             try:
                 x=self.body_json(); typ=x.get('type','').strip(); data=x.get('data',{})
-                allowed={'School Request':'SCHOOL','Youth Registration':'YOUTH','Sponsor / Donor Interest':'SUPPORT','Contact Message':'CONTACT'}
+                allowed={'School Request':'SCHOOL','Youth Registration':'YOUTH','Sponsor / Donor Interest':'SUPPORT','Volunteer Interest':'VOLUNTEER','Contact Message':'CONTACT'}
                 if typ not in allowed: return self.send_json({'error':'Invalid submission type'},400)
                 now=datetime.now(timezone.utc).isoformat(); prefix=allowed[typ]; reference=ref(prefix)
                 c=db(); cur=c.execute('INSERT INTO submissions(reference,type,name,email,phone,payload,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)',(reference,typ,data.get('name'),data.get('email'),data.get('phone'),json.dumps(data),now,now)); submission_id=cur.lastrowid; c.commit(); c.close()
