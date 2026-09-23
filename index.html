@@ -240,7 +240,7 @@
 <script src="script.js"></script><script>
 (async function(){
   try{
-    const r=await fetch('/api/content'); if(!r.ok)return;
+    const r=await fetch('/api/content?fresh='+Date.now(),{cache:'no-store'}); if(!r.ok)return;
     const d=await r.json();
     const posts=document.getElementById('latest-posts'), videos=document.getElementById('latest-videos'), photos=document.getElementById('latest-photos');
     posts.innerHTML=d.posts.map(p=>'<article class="content-card blog-card"><div class="content-card-header"><p class="eyebrow">BLOG</p><h3>'+escapeHtml(p.title)+'</h3></div>'+(p.image_url?'<img src="'+p.image_url+'" alt="'+escapeHtml(p.title)+'">':'')+'<div class="content-card-body"><p>'+escapeHtml(p.excerpt||p.body.slice(0,180))+'</p></div></article>').join('');
