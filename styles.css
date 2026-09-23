@@ -188,3 +188,11 @@ body.a11y-reduce-motion *,body.a11y-reduce-motion *::before,body.a11y-reduce-mot
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto!important}
 }
+
+/* Extended accessibility display modes */
+body.a11y-text-spacing{letter-spacing:.04em;word-spacing:.12em;line-height:1.85}
+body.a11y-text-spacing p,body.a11y-text-spacing li,body.a11y-text-spacing label{line-height:1.9}
+body.a11y-grayscale{filter:grayscale(1)}
+body.a11y-large-cursor,body.a11y-large-cursor *{cursor:default}
+body.a11y-large-cursor a,body.a11y-large-cursor button,body.a11y-large-cursor input,body.a11y-large-cursor select,body.a11y-large-cursor textarea{cursor:pointer}
+body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!important;outline-offset:4px!important}
