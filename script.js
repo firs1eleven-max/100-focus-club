@@ -6,7 +6,7 @@ const cf=document.querySelector('#contact-form');if(cf)cf.addEventListener('subm
 function animateImpactCounters(){const counters=document.querySelectorAll('.impact-counter');if(!counters.length)return;const duration=1800;const start=performance.now();const tick=now=>{const progress=Math.min((now-start)/duration,1);counters.forEach((el,index)=>{if(progress<1){const value=Math.floor((1-Math.pow(1-progress,3))*(18+index*11));el.textContent=String(value).padStart(2,'0');}else{el.textContent=el.dataset.final||'Growing';}});if(progress<1)requestAnimationFrame(tick)};requestAnimationFrame(tick)}
 const impact=document.querySelector('.impact');if(impact){const observer=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.isIntersecting)){animateImpactCounters();observer.disconnect()}},{threshold:.25});observer.observe(impact)}
 
-/* Keep the primary navigation in sync with the section currently on screen. */
+/* Keep the primary navigation in sync with clicks and the section currently on screen. */
 const navLinks=[...document.querySelectorAll('.nav a[href^="#"]')];
 const navSections=navLinks.map(link=>{
   const id=link.getAttribute('href').slice(1);
@@ -18,16 +18,28 @@ function setActiveNav(link){
   navLinks.forEach(item=>{
     const active=item===link;
     item.classList.toggle('active',active);
-    if(active)item.setAttribute('aria-current','location');
+    if(active)item.setAttribute('aria-current','page');
     else item.removeAttribute('aria-current');
   });
 }
+
+let clickedNavTarget=null;
 
 if(navSections.length){
   const navObserver=new IntersectionObserver(entries=>{
     const visible=entries
       .filter(entry=>entry.isIntersecting)
       .sort((a,b)=>b.intersectionRatio-a.intersectionRatio);
+
+    if(clickedNavTarget){
+      const targetEntry=entries.find(entry=>entry.target===clickedNavTarget.section && entry.isIntersecting);
+      if(targetEntry){
+        setActiveNav(clickedNavTarget.link);
+        clickedNavTarget=null;
+      }
+      return;
+    }
+
     if(visible.length){
       const match=navSections.find(item=>item.section===visible[0].target);
       if(match)setActiveNav(match.link);
@@ -43,7 +55,10 @@ if(navSections.length){
   navLinks.forEach(link=>{
     link.addEventListener('click',()=>{
       const match=navSections.find(item=>item.link===link);
-      if(match)setActiveNav(link);
+      if(match){
+        clickedNavTarget=match;
+        setActiveNav(link);
+      }
     });
   });
 }
