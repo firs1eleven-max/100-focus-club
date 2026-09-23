@@ -62,3 +62,47 @@ if(navSections.length){
     });
   });
 }
+
+
+/* Built-in accessibility controls: display preferences, not a separate replacement website. */
+
+(function(){
+  const toggle=document.querySelector('.accessibility-toggle');
+  const panel=document.querySelector('#accessibility-panel');
+  const close=document.querySelector('.accessibility-close');
+  const controls=[...document.querySelectorAll('[data-a11y]')];
+  if(!toggle||!panel)return;
+  const storageKey='focusclub-accessibility';
+  let state={larger:false,contrast:false,underline:false,reduce:false};
+  try{state={...state,...JSON.parse(localStorage.getItem(storageKey)||'{}')}}catch(e){}
+  const classMap={larger:'a11y-larger-text',contrast:'a11y-high-contrast',underline:'a11y-underline-links',reduce:'a11y-reduce-motion'};
+  function apply(){
+    Object.entries(classMap).forEach(([key,cls])=>document.body.classList.toggle(cls,!!state[key]));
+    controls.forEach(btn=>{
+      const key=btn.dataset.a11y;
+      btn.dataset.active=key==='reset'?'false':String(!!state[key]);
+      if(key!=='reset')btn.setAttribute('aria-pressed',String(!!state[key]));
+    });
+    try{localStorage.setItem(storageKey,JSON.stringify(state))}catch(e){}
+  }
+  function openPanel(){
+    panel.hidden=false;
+    toggle.setAttribute('aria-expanded','true');
+    setTimeout(()=>controls[0]?.focus(),0);
+  }
+  function closePanel(){
+    panel.hidden=true;
+    toggle.setAttribute('aria-expanded','false');
+    toggle.focus();
+  }
+  toggle.addEventListener('click',()=>panel.hidden?openPanel():closePanel());
+  close?.addEventListener('click',closePanel);
+  controls.forEach(btn=>btn.addEventListener('click',()=>{
+    const key=btn.dataset.a11y;
+    if(key==='reset')state={larger:false,contrast:false,underline:false,reduce:false};
+    else state[key]=!state[key];
+    apply();
+  }));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)closePanel()});
+  apply();
+})();
