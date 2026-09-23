@@ -170,9 +170,31 @@ class Handler(SimpleHTTPRequestHandler):
             x=self.body_json(); title=str(x.get('title','')).strip(); body=str(x.get('body','')).strip(); excerpt=str(x.get('excerpt','')).strip(); image=str(x.get('image_url','')).strip(); published=1 if x.get('published') else 0
             if not title or not body: return self.send_json({'error':'Title and article body are required'},400)
             slug=re.sub(r'[^a-z0-9]+','-',title.lower()).strip('-') or 'post-'+secrets.token_hex(4); now=datetime.now(timezone.utc).isoformat(); c=db()
-            try: c.execute('INSERT INTO blog_posts(title,slug,excerpt,body,image_url,published,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)',(title,slug,excerpt,body,image,published,now,now)); c.commit()
-            except sqlite3.IntegrityError: c.close(); return self.send_json({'error':'A post with that title already exists'},400)
-            c.close(); return self.send_json({'ok':True,'slug':slug})
+            try:
+                existing=c.execute('SELECT id FROM blog_posts WHERE slug=?',(slug,)).fetchone()
+                if existing:
+                    c.execute('UPDATE blog_posts SET title=?,excerpt=?,body=?,image_url=?,published=?,updated_at=? WHERE id=?',(title,excerpt,body,image,published,now,existing['id']))
+                else:
+                    c.execute('INSERT INTO blog_posts(title,slug,excerpt,body,image_url,published,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)',(title,slug,excerpt,body,image,published,now,now))
+                c.commit()
+            except Exception as e:
+                c.close(); return self.send_json({'error':'Could not save article: '+str(e)},500)
+            c.close(); return self.send_json({'ok':True,'slug':slug,'published':bool(published)})
+        if path=='/api/admin/blog/publish':
+            if not auth_ok(self): return self.send_json({'error':'Unauthorized'},401)
+            x=self.body_json()
+            try:
+                post_id=int(x.get('id'))
+            except Exception:
+                return self.send_json({'error':'Invalid article id'},400)
+            published=1 if x.get('published') else 0
+            c=db(); row=c.execute('SELECT id FROM blog_posts WHERE id=?',(post_id,)).fetchone()
+            if not row:
+                c.close(); return self.send_json({'error':'Article not found'},404)
+            now=datetime.now(timezone.utc).isoformat()
+            c.execute('UPDATE blog_posts SET published=?,updated_at=? WHERE id=?',(published,now,post_id)); c.commit(); c.close()
+            return self.send_json({'ok':True,'published':bool(published)})
+
         if path=='/api/admin/blog/delete':
             if not auth_ok(self): return self.send_json({'error':'Unauthorized'},401)
             x=self.body_json(); c=db(); row=c.execute('SELECT image_url FROM blog_posts WHERE id=?',(int(x.get('id')),)).fetchone()
@@ -246,7 +268,7 @@ class Handler(SimpleHTTPRequestHandler):
                 media_cards += f'<article class="content-manage-item"><div><strong>{r["title"]}</strong><span class="content-type">{r["kind"].title()}</span></div><p>{r["description"] or ""}</p><p><a href="{r["url"]}" target="_blank" rel="noopener">Preview</a> · {"Published" if r["published"] else "Unpublished"}</p><button class="btn" type="button" onclick="deleteMedia({r["id"]},this)">Delete Permanently</button></article>'
             blog_cards=''
             for r in blog_rows:
-                blog_cards += f'<article class="content-manage-item"><div><strong>{r["title"]}</strong><span class="content-type">Blog</span></div><p>{r["excerpt"] or ""}</p><p>{"Published" if r["published"] else "Draft"}</p><p><button class="btn" type="button" onclick="deleteBlog({r["id"]},this)">Delete Permanently</button></p></article>'
+                blog_cards += f'<article class="content-manage-item"><div><strong>{html.escape(r["title"])}</strong><span class="content-type">Blog</span></div><p>{html.escape(r["excerpt"] or "")}</p><p><strong>{"Published" if r["published"] else "Draft"}</strong></p><p><button class="btn" type="button" onclick="toggleBlog({r["id"]},{1 if not r["published"] else 0},this)">{"Publish" if not r["published"] else "Unpublish"}</button> <button class="btn" type="button" onclick="deleteBlog({r["id"]},this)">Delete Permanently</button></p></article>'
             body=f'''<header class="admin-header"><div class="admin-header-inner"><a href="/" class="admin-brand" aria-label="100% Focus Club home"><img class="admin-emblem" src="/100_Focus_Club_Emblem_Transparent.png" alt=""><img class="admin-wordmark" src="/100_Focus_Club_Wordmark_Transparent.png" alt="100% Focus Club"></a><nav class="admin-nav" aria-label="Admin navigation"><a href="/admin">Submissions</a><a href="/admin-content" class="admin-primary">Website Content</a><a href="/" target="_blank" rel="noopener">View Site</a><a href="/admin-logout">Sign Out</a></nav></div></header><main><h1>Website Content</h1><div class="card"><h2>📸 Add Photo</h2><form id="photo" enctype="multipart/form-data"><input type="hidden" name="kind" value="photo"><input required name="title" placeholder="Photo title"><input name="description" placeholder="Caption"><input required type="file" name="file" accept="image/jpeg,image/png,image/webp,image/gif"><button class="btn">Upload Photo</button><span id="pm"></span></form></div><div class="card"><h2>🎥 Add Video</h2><form id="video"><input type="hidden" name="kind" value="video"><input required name="title" placeholder="Video title"><input name="description" placeholder="Description"><input required name="url" placeholder="YouTube or Vimeo URL"><button class="btn">Add Video</button><span id="vm"></span></form></div><div class="card"><h2>📝 Create Blog Post</h2><form id="blog"><input required name="title" placeholder="Post title"><input name="excerpt" placeholder="Short excerpt"><input name="image_url" placeholder="Featured image URL"><textarea required name="body" placeholder="Write your article"></textarea><label><input type="checkbox" name="published" checked> Publish now</label><button class="btn">Publish Post</button><span id="bm"></span></form></div><div class="card"><h2>Published &amp; Uploaded Content</h2><p>Manage content already added to the website. You can permanently delete photos, videos and articles after confirming the action. Permanent deletion cannot be undone.</p><div class="content-manage-list">{media_cards}{blog_cards}</div></div><script>
 async function responseMessage(r,okText,failPrefix){{
   let data={{}};
@@ -280,6 +302,7 @@ document.getElementById('blog').addEventListener('submit',async e=>{{
   finally{{button.disabled=false}}
 }});
 async function deleteMedia(id,button){{if(!confirm('Permanently delete this photo/video? This cannot be undone.'))return;button.disabled=true;let r=await fetch('/api/admin/media/delete',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{id}})}});if(r.ok)location.reload();else{{button.disabled=false;alert(await responseMessage(r,'','Delete failed'))}}}};
+async function toggleBlog(id,published,button){{button.disabled=true;try{{let r=await fetch('/api/admin/blog/publish',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{id,published:!!published}})}});if(r.ok)location.reload();else{{button.disabled=false;alert(await responseMessage(r,'','Publish failed'))}}}}catch(e){{button.disabled=false;alert('Publish failed: Network error')}}}}
 async function deleteBlog(id,button){{if(!confirm('Permanently delete this article? This cannot be undone.'))return;button.disabled=true;let r=await fetch('/api/admin/blog/delete',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{id}})}});if(r.ok)location.reload();else{{button.disabled=false;alert(await responseMessage(r,'','Delete failed'))}}}};
 </script></main>'''
             raw=html_page('Website Content',body).encode(); self.send_response(200); self.send_header('Content-Type','text/html'); self.send_header('Content-Length',str(len(raw))); self.end_headers(); self.wfile.write(raw); return
