@@ -123,3 +123,27 @@ width:100%!important;
 .donation-options-hidden{display:none}
 .donation-options-hidden.is-visible{display:block}
 @media(max-width:720px){.sponsor-payment-options .donate-grid{grid-template-columns:1fr}}
+
+
+/* Active section navigation */
+.nav a.active{
+  color:var(--navy);
+  font-weight:800;
+  box-shadow:inset 0 -3px 0 var(--amber);
+}
+.nav a.nav-support.active{
+  background:var(--amber);
+  color:var(--navy);
+  box-shadow:none;
+}
+@media(max-width:720px){
+  .nav a.active{
+    background:#f7f1e3;
+    box-shadow:inset 4px 0 0 var(--amber);
+    color:var(--navy);
+  }
+  .nav a.nav-support.active{
+    background:var(--amber);
+    box-shadow:none;
+  }
+}
