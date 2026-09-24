@@ -7,11 +7,11 @@ function animateImpactCounters(){const counters=document.querySelectorAll('.impa
 const impact=document.querySelector('.impact');if(impact){const observer=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.isIntersecting)){animateImpactCounters();observer.disconnect()}},{threshold:.25});observer.observe(impact)}
 
 /* Multi-page navigation: highlight the current page and close the mobile menu after navigation. */
-const currentPath=window.location.pathname.replace(/\\/$/,'')||'/';
+const currentPath=window.location.pathname.replace(/\/$/,'')||'/';
 const navLinks=[...document.querySelectorAll('.nav a')];
 navLinks.forEach(link=>{
   const href=link.getAttribute('href')||'';
-  const target=href.split('#')[0].replace(/\\/$/,'')||'/';
+  const target=href.split('#')[0].replace(/\/$/,'')||'/';
   const isHome=currentPath==='/'&&target==='/';
   const active=isHome||target===currentPath;
   link.classList.toggle('active',active);
