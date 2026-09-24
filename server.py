@@ -329,6 +329,30 @@ class Handler(SimpleHTTPRequestHandler):
         return super().do_POST()
     def do_GET(self):
         path=urlparse(self.path).path
+        if path=='/api/chat':
+            qs=parse_qs(urlparse(self.path).query)
+            token=qs.get('token',[''])[0]
+            after=int(qs.get('after',['0'])[0] or 0)
+            if not token: return self.send_json({'error':'Conversation token is required'},400)
+            c=db(); conv=c.execute('SELECT id,status FROM chat_conversations WHERE token=?',(token,)).fetchone()
+            if not conv: c.close(); return self.send_json({'error':'Conversation not found'},404)
+            rows=c.execute('SELECT id,sender,message,created_at FROM chat_messages WHERE conversation_id=? AND id>? ORDER BY id ASC',(conv['id'],after)).fetchall()
+            c.close()
+            return self.send_json({'ok':True,'status':conv['status'],'messages':[dict(r) for r in rows]})
+        if path=='/admin-chat':
+            if not auth_ok(self): self.send_response(302); self.send_header('Location','/admin-login'); self.end_headers(); return
+            c=db(); convs=c.execute('SELECT * FROM chat_conversations ORDER BY updated_at DESC').fetchall()
+            cards=''
+            for conv in convs:
+                msgs=c.execute('SELECT id,sender,message,created_at FROM chat_messages WHERE conversation_id=? ORDER BY id ASC',(conv['id'],)).fetchall()
+                transcript=''.join(f'<div class="chat-admin-msg {html.escape(m["sender"])}"><strong>{html.escape(m["sender"].title())}</strong><p>{html.escape(m["message"])}</p><small>{html.escape(m["created_at"][:19].replace("T"," "))}</small></div>' for m in msgs)
+                cards+=f'''<article class="chat-admin-card"><div class="chat-admin-head"><div><strong>{html.escape(conv["name"] or "Visitor")}</strong><span>{html.escape(conv["email"] or conv["phone"] or "No contact supplied")}</span></div><span class="chat-status">{html.escape(conv["status"])}</span></div><div class="chat-admin-transcript">{transcript}</div><form onsubmit="replyChat(event,{conv["id"]})" class="chat-admin-reply"><textarea name="message" required placeholder="Reply to this visitor…"></textarea><button class="btn" type="submit">Send Reply</button><button class="btn btn-light" type="button" onclick="closeChat({conv["id"]})">Close Chat</button><span class="chat-admin-message" id="cm{conv["id"]}"></span></form></article>'''
+            c.close()
+            body=f'''<header class="admin-header"><div class="admin-header-inner"><a href="/" class="admin-brand" aria-label="100% Focus Club home"><img class="admin-emblem" src="/100_Focus_Club_Emblem_Transparent.png" alt=""><img class="admin-wordmark" src="/100_Focus_Club_Wordmark_Transparent.png" alt="100% Focus Club"></a><nav class="admin-nav" aria-label="Admin navigation"><a href="/admin">Submissions</a><a href="/admin-chat" class="admin-primary">Chat Inbox</a><a href="/admin-content">Website Content</a><a href="/" target="_blank" rel="noopener">View Site</a><a href="/admin-logout">Sign Out</a></nav></div></header><main><h1>Chat Inbox</h1><p class="muted">Automated replies handle common questions. Reply here when a visitor needs a person.</p>{cards or '<div class="card"><p>No chat conversations yet.</p></div>'}<script>
+async function replyChat(e,id){{e.preventDefault();const form=e.currentTarget;const msg=form.querySelector('textarea').value.trim();if(!msg)return;const out=document.getElementById('cm'+id);out.textContent='Sending…';const r=await fetch('/api/chat/reply',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{conversation_id:id,message:msg}})}});if(r.ok)location.reload();else out.textContent='Reply failed';}}
+async function closeChat(id){{const r=await fetch('/api/chat/close',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{conversation_id:id}})}});if(r.ok)location.reload();}}
+</script></main>'''
+            raw=html_page('Chat Inbox',body).encode(); self.send_response(200); self.send_header('Content-Type','text/html'); self.send_header('Content-Length',str(len(raw))); self.end_headers(); self.wfile.write(raw); return
         if path=='/health':
             try:
                 c=db()
