@@ -97,7 +97,8 @@ def auth_ok(handler):
 def send_notification(reference, typ, data):
     if not (SMTP_HOST and ADMIN_EMAIL and SMTP_FROM):
         return False, 'Email is not configured'
-    subject = f"100% Focus Club — New {typ} ({reference})"    name = data.get('name') or data.get('contact_name') or 'Website visitor'
+    subject = f"100% Focus Club — New {typ} ({reference})"
+    name = data.get('name') or data.get('contact_name') or 'Website visitor'
     email = data.get('email') or ''
     body = (f"A new {typ.lower()} was submitted on the 100% Focus Club website.\n\n"
             f"Reference: {reference}\nName: {name}\nEmail: {email}\n\n"
@@ -196,7 +197,8 @@ class Handler(SimpleHTTPRequestHandler):
 
         if path=='/api/admin/blog/delete':
             if not auth_ok(self): return self.send_json({'error':'Unauthorized'},401)
-            x=self.body_json(); c=db(); row=c.execute('SELECT image_url FROM blog_posts WHERE id=?',(int(x.get('id')),)).fetchone()            c.execute('DELETE FROM blog_posts WHERE id=?',(int(x.get('id')),)); c.commit(); c.close()
+            x=self.body_json(); c=db(); row=c.execute('SELECT image_url FROM blog_posts WHERE id=?',(int(x.get('id')),)).fetchone()
+            c.execute('DELETE FROM blog_posts WHERE id=?',(int(x.get('id')),)); c.commit(); c.close()
             if row and row['image_url'].startswith('/media/'):
                 try: (MEDIA_DIR/row['image_url'].split('/media/',1)[1]).unlink()
                 except FileNotFoundError: pass
