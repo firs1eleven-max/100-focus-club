@@ -169,6 +169,59 @@ class Handler(SimpleHTTPRequestHandler):
         n=int(self.headers.get('Content-Length','0')); return json.loads(self.rfile.read(n) or '{}')
     def do_POST(self):
         path=urlparse(self.path).path
+        if path=='/api/chat/start':
+            try:
+                x=self.body_json()
+                name=str(x.get('name','')).strip()[:120]
+                email=str(x.get('email','')).strip()[:180]
+                phone=str(x.get('phone','')).strip()[:80]
+                message=str(x.get('message','')).strip()[:2000]
+                if not name or not message: return self.send_json({'error':'Name and message are required'},400)
+                token=secrets.token_urlsafe(32)
+                now=datetime.now(timezone.utc).isoformat()
+                c=db()
+                cur=c.execute('INSERT INTO chat_conversations(token,name,email,phone,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?)',(token,name,email,phone,'Open',now,now))
+                cid=cur.lastrowid
+                c.execute('INSERT INTO chat_messages(conversation_id,sender,message,created_at) VALUES(?,?,?,?)',(cid,'visitor',message,now))
+                reply=chat_auto_reply(message)
+                c.execute('INSERT INTO chat_messages(conversation_id,sender,message,created_at) VALUES(?,?,?,?)',(cid,'bot',reply,now))
+                c.commit(); c.close()
+                return self.send_json({'ok':True,'token':token})
+            except Exception as e: return self.send_json({'error':str(e)},500)
+        if path=='/api/chat/message':
+            try:
+                x=self.body_json()
+                token=str(x.get('token','')).strip()
+                message=str(x.get('message','')).strip()[:2000]
+                if not token or not message: return self.send_json({'error':'Conversation and message are required'},400)
+                c=db(); conv=c.execute('SELECT * FROM chat_conversations WHERE token=?',(token,)).fetchone()
+                if not conv: c.close(); return self.send_json({'error':'Conversation not found'},404)
+                now=datetime.now(timezone.utc).isoformat()
+                c.execute('INSERT INTO chat_messages(conversation_id,sender,message,created_at) VALUES(?,?,?,?)',(conv['id'],'visitor',message,now))
+                reply=chat_auto_reply(message)
+                c.execute('INSERT INTO chat_messages(conversation_id,sender,message,created_at) VALUES(?,?,?,?)',(conv['id'],'bot',reply,now))
+                c.execute('UPDATE chat_conversations SET updated_at=?,status=? WHERE id=?',(now,'Open',conv['id']))
+                c.commit(); c.close()
+                return self.send_json({'ok':True})
+            except Exception as e: return self.send_json({'error':str(e)},500)
+        if path=='/api/chat/reply':
+            if not auth_ok(self): return self.send_json({'error':'Unauthorized'},401)
+            try:
+                x=self.body_json(); cid=int(x.get('conversation_id')); message=str(x.get('message','')).strip()[:4000]
+                if not message: return self.send_json({'error':'Message is required'},400)
+                now=datetime.now(timezone.utc).isoformat(); c=db()
+                conv=c.execute('SELECT * FROM chat_conversations WHERE id=?',(cid,)).fetchone()
+                if not conv: c.close(); return self.send_json({'error':'Conversation not found'},404)
+                c.execute('INSERT INTO chat_messages(conversation_id,sender,message,created_at) VALUES(?,?,?,?)',(cid,'admin',message,now))
+                c.execute('UPDATE chat_conversations SET updated_at=?,status=?,last_read_admin=1 WHERE id=?',(now,'Open',cid))
+                c.commit(); c.close()
+                return self.send_json({'ok':True})
+            except Exception as e: return self.send_json({'error':str(e)},500)
+        if path=='/api/chat/close':
+            if not auth_ok(self): return self.send_json({'error':'Unauthorized'},401)
+            x=self.body_json(); c=db()
+            c.execute('UPDATE chat_conversations SET status=?,updated_at=? WHERE id=?',('Closed',datetime.now(timezone.utc).isoformat(),int(x.get('conversation_id'))))
+            c.commit(); c.close(); return self.send_json({'ok':True})
         if path=='/api/media':
             if not auth_ok(self): return self.send_json({'error':'Unauthorized'},401)
             try:
