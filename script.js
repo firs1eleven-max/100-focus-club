@@ -112,3 +112,37 @@ navLinks.forEach(link=>{
   enhanceForms();
   apply();
 })();
+
+
+/* 100% Focus Club visitor chat */
+(function(){
+  const key='focusclub_chat_token';
+  const escapeHtml=(v)=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const wrap=document.createElement('div'); wrap.className='chat-widget';
+  wrap.innerHTML=`<button class="chat-launcher" type="button" aria-expanded="false" aria-controls="focus-chat-panel">💬 <span>Chat with us</span></button>
+  <section class="chat-panel" id="focus-chat-panel" hidden aria-label="100% Focus Club chat">
+    <header class="chat-header"><div><strong>100% Focus Club</strong><small>We're here to help</small></div><button type="button" class="chat-close" aria-label="Close chat">×</button></header>
+    <div class="chat-messages" aria-live="polite"></div>
+    <form class="chat-start-form"><div class="chat-fields">
+      <input name="name" required placeholder="Your name" autocomplete="name">
+      <input name="email" type="email" placeholder="Email (optional)" autocomplete="email">
+      <input name="phone" placeholder="WhatsApp / phone (optional)" autocomplete="tel">
+    </div><textarea name="message" required placeholder="How can we help?"></textarea>
+    <button class="btn btn-primary" type="submit">Start Chat</button><p class="chat-status-message" aria-live="polite"></p></form>
+    <form class="chat-reply-form" hidden><textarea name="message" required placeholder="Type your message…"></textarea>
+    <button class="btn btn-primary" type="submit">Send</button><p class="chat-status-message" aria-live="polite"></p></form>
+  </section>`;
+  document.body.appendChild(wrap);
+  const launcher=wrap.querySelector('.chat-launcher'), panel=wrap.querySelector('.chat-panel'), close=wrap.querySelector('.chat-close');
+  const startForm=wrap.querySelector('.chat-start-form'), replyForm=wrap.querySelector('.chat-reply-form'), messages=wrap.querySelector('.chat-messages');
+  let token=localStorage.getItem(key), lastId=0;
+  function open(){panel.hidden=false;launcher.setAttribute('aria-expanded','true');if(token)load();}
+  function shut(){panel.hidden=true;launcher.setAttribute('aria-expanded','false');}
+  function addMessage(sender,message){const item=document.createElement('div');item.className='chat-message '+sender;item.innerHTML='<span class="chat-sender">'+escapeHtml(sender==='admin'?'Team':sender==='bot'?'100% Focus Club':'You')+'</span><p>'+escapeHtml(message)+'</p>';messages.appendChild(item);messages.scrollTop=messages.scrollHeight;}
+  async function load(){if(!token)return;try{const r=await fetch('/api/chat?token='+encodeURIComponent(token)+'&after='+lastId,{cache:'no-store'});if(!r.ok){localStorage.removeItem(key);token=null;return;}const d=await r.json();if(d.status==='Closed'){localStorage.removeItem(key);token=null;return;}d.messages.forEach(m=>{lastId=Math.max(lastId,m.id);addMessage(m.sender,m.message);});}catch(e){}}
+  startForm.addEventListener('submit',async e=>{e.preventDefault();const data=Object.fromEntries(new FormData(startForm).entries()),status=startForm.querySelector('.chat-status-message');status.textContent='Connecting…';try{const r=await fetch('/api/chat/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}),d=await r.json();if(!r.ok)throw new Error(d.error||'Unable to start chat');token=d.token;localStorage.setItem(key,token);startForm.hidden=true;replyForm.hidden=false;messages.innerHTML='';lastId=0;await load();status.textContent='';}catch(err){status.textContent=err.message;}});
+  replyForm.addEventListener('submit',async e=>{e.preventDefault();const input=replyForm.elements.message,message=input.value.trim(),status=replyForm.querySelector('.chat-status-message');if(!message)return;input.disabled=true;status.textContent='Sending…';try{const r=await fetch('/api/chat/message',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,message})});if(!r.ok){const d=await r.json();throw new Error(d.error||'Send failed');}input.value='';status.textContent='';await load();}catch(err){status.textContent=err.message;}finally{input.disabled=false;input.focus();}});
+  close.addEventListener('click',shut);launcher.addEventListener('click',open);
+  if(token){startForm.hidden=true;replyForm.hidden=false;load();}
+  setInterval(()=>token&&load(),4000);
+})();
