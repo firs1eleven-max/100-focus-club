@@ -295,3 +295,4 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
   .volunteer-card .volunteer-form button{width:100%;min-width:0}
 }
 .nav a.active{color:var(--navy);font-weight:800;position:relative}.nav a.active:not(.nav-support):not(.nav-cta)::after{content:"";position:absolute;left:0;right:0;bottom:-9px;height:3px;background:var(--amber);border-radius:3px}.nav a.nav-support.active{box-shadow:none}.nav a.nav-cta.active{box-shadow:none}
+.school-program-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}.school-program-grid .path-card{padding:24px;min-height:330px}.school-program-grid .path-card h3{font-size:23px}.school-program-grid .card-kicker{margin-top:36px}@media(max-width:1000px){.school-program-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.school-program-grid{grid-template-columns:1fr}.school-program-grid .path-card{min-height:280px}}
