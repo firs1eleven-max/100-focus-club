@@ -294,4 +294,4 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
   .forms .contact-form button,
   .volunteer-card .volunteer-form button{width:100%;min-width:0}
 }
-.nav a.active{color:var(--navy);font-weight:800;position:relative}.nav a.active:not(.nav-support):not(.nav-cta)::after{content:"";position:absolute;left:0;right:0;bottom:-9px;height:3px;background:var(--amber);border-radius:3px}.nav a.nav-support.active{box-shadow:0 0 0 3px rgba(244,165,28,.25),0 6px 16px rgba(244,165,28,.28)}.nav a.nav-cta.active{box-shadow:0 0 0 3px rgba(11,31,58,.18)}
+.nav a.active{color:var(--navy);font-weight:800;position:relative}.nav a.active:not(.nav-support):not(.nav-cta)::after{content:"";position:absolute;left:0;right:0;bottom:-9px;height:3px;background:var(--amber);border-radius:3px}.nav a.nav-support.active{box-shadow:none}.nav a.nav-cta.active{box-shadow:none}
