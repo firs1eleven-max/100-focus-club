@@ -333,3 +333,15 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
 .chat-admin-reply textarea{width:100%;min-height:90px;box-sizing:border-box;border:1px solid #ccd3dc;border-radius:9px;padding:10px;font:inherit;resize:vertical}
 .chat-admin-reply .btn{margin-top:8px}.btn-light{background:#fff;border:1px solid var(--line);color:var(--navy)}
 @media(max-width:600px){.chat-widget{right:14px;bottom:14px}.chat-launcher span{display:none}.chat-panel{right:-2px;bottom:58px;width:calc(100vw - 28px);height:min(620px,calc(100vh - 90px))}.chat-fields{grid-template-columns:1fr}}
+
+/* Support form layout fix */
+.support-us .section-heading{max-width:900px;margin-left:auto;margin-right:auto}
+.forms .section-heading{max-width:900px;margin-left:auto;margin-right:auto}
+.forms .form-grid{display:grid;grid-template-columns:minmax(0,820px);justify-content:center;gap:24px}
+.forms .interest-form{width:100%;max-width:none;box-sizing:border-box;padding:32px;border-radius:24px}
+.forms .interest-form input,.forms .interest-form select,.forms .interest-form textarea{width:100%;max-width:100%;box-sizing:border-box}
+.forms .interest-form .consent{display:flex;align-items:flex-start;gap:10px;width:100%;box-sizing:border-box}
+.forms .interest-form .consent input{width:auto;max-width:none;flex:0 0 auto;margin-top:4px}
+.forms .interest-form .donation-options-hidden{width:100%;box-sizing:border-box;margin-top:24px}
+.donate-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media(max-width:700px){.forms .interest-form{padding:24px 18px}.donate-grid{grid-template-columns:1fr}}
