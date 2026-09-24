@@ -6,70 +6,7 @@ const cf=document.querySelector('#contact-form');if(cf)cf.addEventListener('subm
 function animateImpactCounters(){const counters=document.querySelectorAll('.impact-counter');if(!counters.length)return;const duration=1800;const start=performance.now();const tick=now=>{const progress=Math.min((now-start)/duration,1);counters.forEach((el,index)=>{if(progress<1){const value=Math.floor((1-Math.pow(1-progress,3))*(18+index*11));el.textContent=String(value).padStart(2,'0');}else{el.textContent=el.dataset.final||'Growing';}});if(progress<1)requestAnimationFrame(tick)};requestAnimationFrame(tick)}
 const impact=document.querySelector('.impact');if(impact){const observer=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.isIntersecting)){animateImpactCounters();observer.disconnect()}},{threshold:.25});observer.observe(impact)}
 
-/* Keep the primary navigation in sync with clicks and the section nearest the reading line. */
-const navLinks=[...document.querySelectorAll('.nav a[href^="#"]')];
-const navSections=navLinks.map(link=>{
-  const id=link.getAttribute('href').slice(1);
-  const section=document.getElementById(id);
-  return section?{link,section}:null;
-}).filter(Boolean);
-
-function setActiveNav(link){
-  navLinks.forEach(item=>{
-    const active=item===link;
-    item.classList.toggle('active',active);
-    if(active)item.setAttribute('aria-current','page');
-    else item.removeAttribute('aria-current');
-  });
-}
-
-let clickedNavTarget=null;
-let navTicking=false;
-
-function updateActiveNav(){
-  if(!navSections.length)return;
-  const readingLine=Math.max(96,window.innerHeight*0.28);
-  let current=null;
-  let bestDistance=Infinity;
-
-  navSections.forEach(item=>{
-    const rect=item.section.getBoundingClientRect();
-    const distance=Math.abs(rect.top-readingLine);
-    if(rect.top<=readingLine && rect.bottom>readingLine && distance<bestDistance){
-      current=item; bestDistance=distance;
-    }
-  });
-
-  if(!current){
-    const passed=navSections.filter(item=>item.section.getBoundingClientRect().top<=readingLine);
-    current=passed[passed.length-1]||navSections[0];
-  }
-
-  if(current)setActiveNav(current.link);
-}
-
-if(navSections.length){
-  navLinks.forEach(link=>{
-    link.addEventListener('click',()=>{
-      const match=navSections.find(item=>item.link===link);
-      if(match){
-        clickedNavTarget=match;
-        setActiveNav(link);
-        setTimeout(()=>{clickedNavTarget=null;updateActiveNav()},700);
-      }
-    });
-  });
-  window.addEventListener('scroll',()=>{
-    if(!navTicking){
-      navTicking=true;
-      requestAnimationFrame(()=>{navTicking=false;updateActiveNav()});
-    }
-  },{passive:true});
-  window.addEventListener('resize',updateActiveNav);
-  updateActiveNav();
-}
-
-/* Accessibility controller — supports all display options and keeps old settings compatible. */
+/* Multi-page navigation: highlight the current page and close the mobile menu after navigation. */\nconst currentPath=window.location.pathname.replace(/\\/$/,'')||'/';\nconst navLinks=[...document.querySelectorAll('.nav a')];\nnavLinks.forEach(link=>{\n  const href=link.getAttribute('href')||'';\n  const target=href.split('#')[0].replace(/\\/$/,'')||'/';\n  const isHome=currentPath==='/'&&target==='/';\n  const active=isHome||target===currentPath;\n  link.classList.toggle('active',active);\n  if(active)link.setAttribute('aria-current','page');\n  else link.removeAttribute('aria-current');\n});\n\n/* Published website content powers the dedicated Stories page without hard-coded posts. */\n(async function loadStories(){\n  const posts=document.getElementById('latest-posts'), videos=document.getElementById('latest-videos'), photos=document.getElementById('latest-photos');\n  if(!posts&&!videos&&!photos)return;\n  try{\n    const r=await fetch('/api/content?fresh='+Date.now(),{cache:'no-store'});\n    if(!r.ok)throw new Error('content');\n    const d=await r.json();\n    const escapeHtml=s=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));\n    const embedVideo=url=>{try{const u=new URL(url);const id=u.searchParams.get('v')||u.pathname.split('/').pop();if(u.hostname.includes('youtu.be')||u.hostname.includes('youtube.com'))return '<iframe src="https://www.youtube.com/embed/'+encodeURIComponent(id)+'" title="Video" loading="lazy" allowfullscreen></iframe>';if(u.hostname.includes('vimeo.com'))return '<iframe src="https://player.vimeo.com/video/'+encodeURIComponent(id)+'" title="Video" loading="lazy" allowfullscreen></iframe>'}catch(e){}return '<a class="btn btn-primary" href="'+encodeURI(url)+'" target="_blank" rel="noopener">Watch Video</a>'};\n    if(posts)posts.innerHTML=d.posts.map(p=>'<article class="content-card blog-card"><div class="content-card-header"><p class="eyebrow">BLOG</p><h3>'+escapeHtml(p.title)+'</h3></div>'+(p.image_url?'<img src="'+escapeHtml(p.image_url)+'" alt="'+escapeHtml(p.title)+'">':'')+'<div class="content-card-body"><p>'+escapeHtml(p.excerpt||String(p.body||'').slice(0,180))+'</p></div></article>').join('');\n    if(videos)videos.innerHTML=d.videos.map(v=>'<article class="content-card video-card"><div class="content-card-header"><p class="eyebrow">VIDEO</p><h3>'+escapeHtml(v.title)+'</h3></div><div class="video-frame">'+embedVideo(v.url)+'</div><div class="content-card-body"><p>'+escapeHtml(v.description||'')+'</p></div></article>').join('');\n    if(photos)photos.innerHTML=d.photos.map(p=>'<figure><img src="'+escapeHtml(p.url)+'" alt="'+escapeHtml(p.title)+'"><figcaption>'+escapeHtml(p.title)+'</figcaption></figure>').join('');\n    if(!d.posts.length&&!d.videos.length&&!d.photos.length){const storySection=document.getElementById('stories');if(storySection)storySection.insertAdjacentHTML('beforeend','<p class="empty-content">New stories, photos and videos will appear here as they are published.</p>');}\n  }catch(e){const storySection=document.getElementById('stories');if(storySection)storySection.insertAdjacentHTML('beforeend','<p class="empty-content">Stories and updates are temporarily unavailable. Please check back soon.</p>');}\n})();\n\n/* Accessibility controller — supports all display options and keeps old settings compatible. */
 (function(){
   const toggle=document.querySelector('.accessibility-toggle');
   const panel=document.querySelector('#accessibility-panel');
