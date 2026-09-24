@@ -255,3 +255,42 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
   .forms .contact-form button,
   .volunteer-card .volunteer-form button{width:100%;justify-self:stretch}
 }
+
+
+/* Centered single-column forms — balanced page composition */
+.forms .form-grid{display:flex!important;justify-content:center;align-items:center;width:100%;max-width:none;margin:0 auto}
+.forms .form-grid>.interest-form,
+.forms .form-grid>.contact-form{display:grid;grid-template-columns:1fr;width:min(100%,680px);max-width:680px;margin:0 auto;padding:38px 40px;border:1px solid var(--line);border-radius:24px;box-shadow:0 18px 45px rgba(11,31,58,.10);box-sizing:border-box}
+.forms .interest-form h3,
+.forms .contact-form h3{grid-column:1;text-align:center;font-size:24px;padding-bottom:16px;margin:0 0 4px;border-bottom:1px solid var(--line)}
+.forms .interest-form input,
+.forms .interest-form select,
+.forms .interest-form textarea,
+.forms .contact-form input,
+.forms .contact-form select,
+.forms .contact-form textarea{grid-column:1;width:100%;box-sizing:border-box}
+.forms .interest-form textarea,
+.forms .contact-form textarea{min-height:140px}
+.forms .interest-form .consent,
+.forms .contact-form .consent{grid-column:1;text-align:left}
+.forms .interest-form button,
+.forms .contact-form button{grid-column:1;justify-self:center;min-width:210px;margin-top:6px}
+.forms .interest-form .form-status,
+.forms .contact-form .form-status{grid-column:1;text-align:center;min-height:20px}
+.volunteer-card .volunteer-form{display:grid;grid-template-columns:1fr;width:min(100%,680px);max-width:680px;margin:0 auto;padding:38px 40px;border:1px solid var(--line);border-radius:24px;box-shadow:0 18px 45px rgba(11,31,58,.10);box-sizing:border-box}
+.volunteer-card .volunteer-form h3{grid-column:1;text-align:center;font-size:24px;padding-bottom:16px;margin:0 0 4px;border-bottom:1px solid var(--line)}
+.volunteer-card .volunteer-form input,
+.volunteer-card .volunteer-form select,
+.volunteer-card .volunteer-form textarea{grid-column:1;width:100%;box-sizing:border-box}
+.volunteer-card .volunteer-form textarea{min-height:140px}
+.volunteer-card .volunteer-form .consent{grid-column:1;text-align:left}
+.volunteer-card .volunteer-form button{grid-column:1;justify-self:center;min-width:210px;margin-top:6px}
+.volunteer-card .volunteer-form .form-status{grid-column:1;text-align:center;min-height:20px}
+@media(max-width:720px){
+  .forms .form-grid>.interest-form,
+  .forms .form-grid>.contact-form,
+  .volunteer-card .volunteer-form{width:100%;max-width:680px;padding:26px 22px;border-radius:20px}
+  .forms .interest-form button,
+  .forms .contact-form button,
+  .volunteer-card .volunteer-form button{width:100%;min-width:0}
+}
