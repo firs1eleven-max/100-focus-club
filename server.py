@@ -115,6 +115,22 @@ def auth_ok(handler):
 
 
 
+def chat_auto_reply(message):
+    m=message.lower()
+    if any(w in m for w in ('hello','hi','hey','good morning','good afternoon','good evening')):
+        return "Hello! Welcome to 100% Focus Club. I can help with school sessions, youth training, volunteering, support and general questions. If you need a person, just say so."
+    if any(w in m for w in ('school','learner','learners','motivational talk','school session','book a talk')):
+        return "We can help schools arrange motivational speaking, entrepreneurship, life-skills, career guidance and youth empowerment sessions. You can use the For Schools page to send a request, or tell me what your school needs."
+    if any(w in m for w in ('youth','training','entrepreneur','business','neolife','sales')):
+        return "Our youth pathway includes entrepreneurship, life skills and career guidance, with a guided Neolife product-sales pathway for eligible participants. You can use the Youth page to register, or tell me what you would like to know."
+    if any(w in m for w in ('volunteer','volunteering','mentor','mentorship')):
+        return "Thank you for your interest in volunteering. We welcome mentorship, career guidance, youth activities, entrepreneurship support, events, administration and communications support. The Volunteer page has the interest form."
+    if any(w in m for w in ('donate','donation','sponsor','sponsorship','partner','partnership','support')):
+        return "You can support 100% Focus Club through donations, sponsorship, training support, mentorship, equipment/resources and partnerships. Visit Support Us or tell me what kind of support you are considering."
+    if any(w in m for w in ('contact','phone','email','whatsapp','person','human','someone')):
+        return "Absolutely. A member of the 100% Focus Club team can respond here. Please leave your question and, if you have not already done so, your email or WhatsApp number."
+    return "Thanks for your message. I can help with schools, youth training, volunteering, support and general questions. If your question needs a person, your conversation is saved for the 100% Focus Club team to reply to.";
+
 def send_notification(reference, typ, data):
     if not (SMTP_HOST and ADMIN_EMAIL and SMTP_FROM):
         return False, 'Email is not configured'
