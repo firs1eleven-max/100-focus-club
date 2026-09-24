@@ -197,9 +197,11 @@ class Handler(SimpleHTTPRequestHandler):
                 c=db(); conv=c.execute('SELECT * FROM chat_conversations WHERE token=?',(token,)).fetchone()
                 if not conv: c.close(); return self.send_json({'error':'Conversation not found'},404)
                 now=datetime.now(timezone.utc).isoformat()
+                last=c.execute('SELECT sender FROM chat_messages WHERE conversation_id=? ORDER BY id DESC LIMIT 1',(conv['id'],)).fetchone()
                 c.execute('INSERT INTO chat_messages(conversation_id,sender,message,created_at) VALUES(?,?,?,?)',(conv['id'],'visitor',message,now))
-                reply=chat_auto_reply(message)
-                c.execute('INSERT INTO chat_messages(conversation_id,sender,message,created_at) VALUES(?,?,?,?)',(conv['id'],'bot',reply,now))
+                reply='' if last and last['sender']=='admin' else chat_auto_reply(message)
+                if reply:
+                    c.execute('INSERT INTO chat_messages(conversation_id,sender,message,created_at) VALUES(?,?,?,?)',(conv['id'],'bot',reply,now))
                 c.execute('UPDATE chat_conversations SET updated_at=?,status=? WHERE id=?',(now,'Open',conv['id']))
                 c.commit(); c.close()
                 return self.send_json({'ok':True})
