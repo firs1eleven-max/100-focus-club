@@ -362,3 +362,23 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
 .contact-layout .interest-form input,.contact-layout .interest-form textarea{display:block;width:100%;min-width:0;box-sizing:border-box}
 .contact-layout .interest-form .btn{align-self:flex-start;white-space:nowrap}
 @media(max-width:520px){.contact-layout .interest-form{padding:24px 18px}.contact-layout .interest-form .btn{width:100%}}
+
+/* Contact form — clean responsive fields */
+.contact-layout .contact-field{display:flex;flex-direction:column;gap:7px;width:100%;min-width:0}
+.contact-layout .contact-field label{font:700 13px Inter,Arial,sans-serif;color:var(--navy);letter-spacing:.01em}
+.contact-layout .contact-field input,
+.contact-layout .contact-field textarea{margin:0;width:100%;min-width:0;max-width:100%;box-sizing:border-box;border:1px solid #d5dce5;border-radius:14px;padding:14px 16px;font:15px Inter,Arial,sans-serif;color:var(--ink);background:#fff}
+.contact-layout .contact-field input{height:52px}
+.contact-layout .contact-field textarea{min-height:150px;resize:vertical}
+.contact-layout .contact-field input:focus,
+.contact-layout .contact-field textarea:focus{outline:3px solid rgba(244,165,28,.22);border-color:var(--amber)}
+@media(max-width:520px){
+  .contact-layout .interest-form{padding:22px 18px;gap:14px}
+  .contact-layout .interest-form h3{font-size:21px;line-height:1.25;padding-bottom:12px;white-space:normal}
+  .contact-layout .contact-field{gap:6px}
+  .contact-layout .contact-field label{font-size:13px}
+  .contact-layout .contact-field input{height:50px}
+  .contact-layout .contact-field input,
+  .contact-layout .contact-field textarea{font-size:15px;padding:13px 14px}
+  .contact-layout .interest-form .btn{width:100%;min-height:48px}
+}
