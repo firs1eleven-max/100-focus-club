@@ -460,3 +460,80 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
 @media(max-width:900px){
   .contact-layout{grid-template-columns:1fr;max-width:760px}
 }
+
+
+/* Contact form final professional layout */
+.contact-section .contact-layout{
+  width:min(100%,1400px)!important;
+  max-width:1400px!important;
+  grid-template-columns:minmax(340px,.78fr) minmax(620px,1.22fr)!important;
+  gap:40px!important;
+  margin:0 auto!important;
+  align-items:stretch!important;
+}
+.contact-section .contact-intro{
+  width:100%!important;
+  box-sizing:border-box!important;
+}
+.contact-section .form-grid{
+  width:100%!important;
+  min-width:0!important;
+}
+.contact-section .interest-form{
+  width:100%!important;
+  max-width:none!important;
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  column-gap:22px!important;
+  row-gap:16px!important;
+  align-content:start!important;
+  padding:36px!important;
+}
+.contact-section .interest-form>h3,
+.contact-section .interest-form>.contact-message-field,
+.contact-section .interest-form>.btn,
+.contact-section .interest-form>.form-status{
+  grid-column:1 / -1!important;
+}
+.contact-section .interest-form>h3{
+  width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+  white-space:nowrap!important;
+  overflow:visible!important;
+}
+.contact-section .contact-field{
+  width:100%!important;
+  min-width:0!important;
+}
+.contact-section .contact-field label{
+  white-space:nowrap!important;
+}
+.contact-section .contact-field input,
+.contact-section .contact-field textarea{
+  width:100%!important;
+  max-width:none!important;
+  box-sizing:border-box!important;
+}
+.contact-section .contact-message-field textarea{
+  min-height:190px!important;
+}
+@media(max-width:1100px){
+  .contact-section .contact-layout{
+    grid-template-columns:1fr!important;
+    max-width:820px!important;
+  }
+}
+@media(max-width:700px){
+  .contact-section .interest-form{
+    grid-template-columns:1fr!important;
+    padding:26px 20px!important;
+  }
+  .contact-section .interest-form>h3,
+  .contact-section .interest-form>.contact-message-field,
+  .contact-section .interest-form>.btn,
+  .contact-section .interest-form>.form-status{
+    grid-column:1!important;
+  }
+}
