@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://one00-focus-club.onrender.com/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://100percentfocusclub.org/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://100percentfocusclub.org/about</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://100percentfocusclub.org/programs</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://100percentfocusclub.org/schools</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://100percentfocusclub.org/youth</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://100percentfocusclub.org/volunteer</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://100percentfocusclub.org/support</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://100percentfocusclub.org/stories</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://100percentfocusclub.org/resources</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://100percentfocusclub.org/events</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://100percentfocusclub.org/contact</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
 </urlset>
