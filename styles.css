@@ -382,3 +382,21 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
   .contact-layout .contact-field textarea{font-size:15px;padding:13px 14px}
   .contact-layout .interest-form .btn{width:100%;min-height:48px}
 }
+
+/* Keep the contact form title on one line when there is room */
+.contact-layout .interest-form>h3{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  white-space:nowrap;
+  overflow:visible;
+  font-family:Montserrat,Inter,Arial,sans-serif;
+  font-size:22px;
+  line-height:1.2;
+}
+.contact-layout .interest-form>h3 span{
+  flex:0 0 auto;
+}
+@media(max-width:360px){
+  .contact-layout .interest-form>h3{font-size:20px}
+}
