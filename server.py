@@ -171,6 +171,13 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header('Permissions-Policy','camera=(), microphone=(), geolocation=()')
         if os.environ.get('PUBLIC_HTTPS','1') == '1':
             self.send_header('Strict-Transport-Security','max-age=31536000; includeSubDomains')
+        p=urlparse(self.path).path
+        if p.startswith('/media/'):
+            self.send_header('Cache-Control','public, max-age=31536000, immutable')
+        elif p.endswith(('.css','.js','.png','.jpg','.jpeg','.webp','.gif','.svg','.ico','.woff','.woff2')):
+            self.send_header('Cache-Control','public, max-age=86400')
+        elif p.startswith('/api/'):
+            self.send_header('Cache-Control','no-store')
         super().end_headers()
     def send_json(self,obj,status=200):
         raw=json.dumps(obj).encode(); self.send_response(status); self.send_header('Content-Type','application/json'); self.send_header('Content-Length',str(len(raw))); self.end_headers(); self.wfile.write(raw)
