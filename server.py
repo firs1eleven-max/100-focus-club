@@ -95,6 +95,8 @@ def init_db():
     except sqlite3.OperationalError:
         pass
     c.execute('CREATE INDEX IF NOT EXISTS idx_submissions_archived ON submissions(archived)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_chat_messages_conversation_id ON chat_messages(conversation_id,id)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_chat_conversations_status_updated ON chat_conversations(status,updated_at)')
     c.execute('PRAGMA journal_mode=WAL')
     c.execute('PRAGMA synchronous=FULL')
     c.commit(); c.close()
@@ -154,6 +156,13 @@ def html_page(title, body):
     return f'''<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/png" href="/100_Focus_Club_Emblem_Transparent.png"><link rel="apple-touch-icon" href="/100_Focus_Club_Emblem_Transparent.png"><title>{title}</title><style>body{{font-family:Inter,Arial,sans-serif;background:#f7f1e3;color:#0b1f3a;margin:0}}.admin-header{{background:#fff;color:#0b1f3a;border-bottom:1px solid #d9dee7;box-shadow:0 2px 10px rgba(11,31,58,.08);min-height:78px;box-sizing:border-box}}.admin-header-inner{{max-width:1280px;margin:0 auto;padding:0 28px;min-height:78px;display:flex;align-items:center;justify-content:space-between;gap:32px;box-sizing:border-box}}.admin-brand{{display:flex;align-items:center;gap:12px;text-decoration:none;flex:0 0 auto}}.admin-wordmark{{width:148px;height:auto;display:block}}.admin-emblem{{width:46px;height:46px;object-fit:contain;display:block;flex:0 0 46px}}.admin-nav{{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}}.admin-nav a{{color:#0b1f3a;text-decoration:none;font-size:14px;font-weight:700;padding:10px 13px;border-radius:8px;white-space:nowrap}}.admin-nav a:hover{{background:#f7f1e3}}.admin-nav .admin-primary{{background:#f4a51c;color:#0b1f3a}}.admin-nav .admin-primary:hover{{background:#d9920e}}main{{max-width:1100px;margin:28px auto;padding:0 18px}}a,button{{font:inherit}}.card{{background:#fff;border-radius:14px;padding:20px;margin:16px 0;box-shadow:0 4px 20px #0b1f3a12}}.submission-details{{width:100%}}.submission-details>summary{{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 12px;border:1px solid #d9dee7;border-radius:9px;background:#fff;font-weight:800;color:#0b1f3a}}.submission-details>summary::-webkit-details-marker{{display:none}}.submission-details>summary:before{{content:'+';display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#f4a51c;margin-right:8px}}.submission-details[open]>summary:before{{content:'−'}}.submission-details>summary small{{font-weight:600;color:#6b7280}}.submission-panel{{margin-top:10px;padding:18px;border:1px solid #e3e7ed;border-radius:12px;background:#fbfcfe}}.submission-heading{{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:14px;border-bottom:1px solid #e3e7ed}}.submission-heading h3{{margin:5px 0 0;font-size:20px}}.submission-type{{font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#6b7280}}.submission-status{{background:#f4a51c;color:#0b1f3a;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800}}.submission-fields{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}}.submission-field{{margin:0;padding:11px 12px;background:#fff;border:1px solid #e3e7ed;border-radius:9px}}.submission-field dt{{font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:800;color:#6b7280;margin-bottom:4px}}.submission-field dd{{margin:0;line-height:1.5;overflow-wrap:anywhere}}.submission-field:has(dd br){{grid-column:1/-1}}.muted{{color:#6b7280}}.admin-notes{{border-top:1px solid #e3e7ed;padding-top:16px}}.admin-notes label{{display:block;font-weight:800;margin-bottom:7px}}.admin-notes textarea{{width:100%;min-height:88px;box-sizing:border-box;resize:vertical;padding:11px;border:1px solid #cbd3df;border-radius:8px;font:inherit;color:#0b1f3a;background:#fff}}.submission-actions{{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}}.btn-danger{{border-color:#c95a5a!important;color:#8f2525!important;background:#fff!important}}.save-message{{font-size:13px;font-weight:700}}@media(max-width:760px){{.submission-fields{{grid-template-columns:1fr}}.submission-field:has(dd br){{grid-column:auto}}.submission-heading{{flex-direction:column}}}}.login-page{{max-width:none;min-height:100vh;margin:0;padding:40px 18px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;background:#f7f1e3}}.login-card{{width:min(440px,100%);box-sizing:border-box;background:#fff;border-radius:18px;padding:34px;box-shadow:0 12px 40px #0b1f3a18;text-align:center}}.login-brand{{display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;margin-bottom:24px}}.login-emblem{{width:46px;height:46px;object-fit:contain}}.login-wordmark{{width:148px;height:auto}}.login-eyebrow{{margin:0 0 7px;color:#8a6918;font-size:11px;font-weight:800;letter-spacing:.12em}}.login-card h1{{margin:0;color:#0b1f3a;font-size:30px}}.login-intro{{margin:10px 0 24px;color:#667085;font-size:14px}}.login-card form{{display:grid;gap:16px;text-align:left}}.login-card label{{display:grid;gap:7px;color:#0b1f3a;font-size:13px;font-weight:700}}.login-card input{{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccd3dc;border-radius:8px;font-size:15px}}.login-card input:focus{{outline:2px solid #f4a51c;outline-offset:1px;border-color:#f4a51c}}.login-button{{width:100%;margin-top:4px}}.login-error{{margin:0 0 16px;padding:10px 12px;border-radius:8px;background:#fff0f0;color:#a12b2b;font-size:13px;font-weight:700}}.login-back{{display:inline-block;margin-top:20px;color:#0b1f3a;text-decoration:none;font-size:13px;font-weight:700}}.login-back:hover{{text-decoration:underline}}table{{width:100%;border-collapse:collapse;background:#fff}}th,td{{padding:12px;border-bottom:1px solid #ddd;text-align:left;vertical-align:top}}th{{background:#0b1f3a;color:#fff}}.grid{{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}}.stat{{background:#fff;padding:18px;border-radius:14px}}.stat b{{font-size:28px;display:block}}.btn{{background:#f4a51c;color:#0b1f3a;border:0;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer}}input,select{{padding:10px;border:1px solid #ccc;border-radius:7px}}@media(max-width:760px){{.admin-header-inner{{padding:12px 18px;min-height:auto;align-items:flex-start;gap:14px;flex-direction:column}}.admin-nav{{width:100%;justify-content:flex-start}}.admin-nav a{{font-size:13px;padding:8px 10px}}.admin-wordmark{{width:136px}}.admin-emblem{{width:40px;height:40px;flex-basis:40px}}.grid{{grid-template-columns:1fr 1fr}}table{{font-size:13px;display:block;overflow-x:auto;white-space:nowrap}}}}</style></head><body>{body}</body></html>'''
 
 class Handler(SimpleHTTPRequestHandler):
+    protocol_version='HTTP/1.0'
+    server_version='FocusClub/1.0'
+
+    def setup(self):
+        super().setup()
+        self.connection.settimeout(30)
+
     def __init__(self,*args,**kwargs): super().__init__(*args,directory=str(ROOT),**kwargs)
     def end_headers(self):
         self.send_header('X-Content-Type-Options','nosniff')
@@ -165,8 +174,12 @@ class Handler(SimpleHTTPRequestHandler):
         super().end_headers()
     def send_json(self,obj,status=200):
         raw=json.dumps(obj).encode(); self.send_response(status); self.send_header('Content-Type','application/json'); self.send_header('Content-Length',str(len(raw))); self.end_headers(); self.wfile.write(raw)
-    def body_json(self):
-        n=int(self.headers.get('Content-Length','0')); return json.loads(self.rfile.read(n) or '{}')
+    def body_json(self, max_bytes=262144):
+        raw_length=self.headers.get('Content-Length')
+        try: n=int(raw_length or '0')
+        except ValueError: raise ValueError('Invalid request body')
+        if n<0 or n>max_bytes: raise ValueError('Request body is too large')
+        return json.loads(self.rfile.read(n) or '{}')
     def do_POST(self):
         path=urlparse(self.path).path
         if path=='/api/chat/start':
@@ -230,6 +243,8 @@ class Handler(SimpleHTTPRequestHandler):
                 ctype=self.headers.get('Content-Type','')
                 if not ctype.startswith('multipart/form-data'): return self.send_json({'error':'Use multipart/form-data'},400)
                 length=int(self.headers.get('Content-Length','0'))
+                if length < 0 or length > 12582912:
+                    return self.send_json({'error':'Image upload is too large. Maximum size is 12 MB.'},413)
                 raw_body=self.rfile.read(length)
                 msg=BytesParser(policy=policy.default).parsebytes(b'Content-Type: '+ctype.encode()+b'\r\nMIME-Version: 1.0\r\n\r\n'+raw_body)
                 fields={}; file_data=None; file_name=''
@@ -297,7 +312,7 @@ class Handler(SimpleHTTPRequestHandler):
             return self.send_json({'ok':True})
         if path=='/api/submit':
             try:
-                x=self.body_json(); typ=x.get('type','').strip(); data=x.get('data',{})
+                x=self.body_json(131072); typ=x.get('type','').strip(); data=x.get('data',{})
                 allowed={'School Request':'SCHOOL','Youth Registration':'YOUTH','Sponsor / Donor Interest':'SUPPORT','Volunteer Interest':'VOLUNTEER','Contact Message':'CONTACT'}
                 if typ not in allowed: return self.send_json({'error':'Invalid submission type'},400)
                 now=datetime.now(timezone.utc).isoformat(); prefix=allowed[typ]; reference=ref(prefix)
@@ -489,4 +504,7 @@ if __name__=='__main__':
     print(f'100% Focus Club running at http://localhost:{PORT}')
     print(f'Admin: http://localhost:{PORT}/admin-login')
     print('Set FOCUS_ADMIN_PASSWORD before deployment; the server will refuse admin login if it is empty.')
-    ThreadingHTTPServer(('0.0.0.0',PORT),Handler).serve_forever()
+    server=ThreadingHTTPServer(('0.0.0.0',PORT),Handler)
+    server.daemon_threads=True
+    server.request_queue_size=128
+    server.serve_forever()
