@@ -307,7 +307,7 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
 .nav a.active{color:var(--navy);font-weight:800;position:relative}.nav a.active:not(.nav-support):not(.nav-cta)::after{content:"";position:absolute;left:0;right:0;bottom:-9px;height:3px;background:var(--amber);border-radius:3px}.nav a.nav-support.active{box-shadow:none}.nav a.nav-cta.active{box-shadow:none}
 .school-program-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}.school-program-grid .path-card{padding:24px;min-height:330px}.school-program-grid .path-card h3{font-size:23px}.school-program-grid .card-kicker{margin-top:36px}@media(max-width:1000px){.school-program-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.school-program-grid{grid-template-columns:1fr}.school-program-grid .path-card{min-height:280px}}
 
-.events-program-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.events-program-grid .path-card{min-height:330px}.contact-layout{display:grid;grid-template-columns:.8fr 1.2fr;gap:32px;align-items:stretch;max-width:1100px;margin:0 auto}.contact-intro{background:var(--navy);color:#fff;border-radius:24px;padding:38px;display:flex;flex-direction:column;justify-content:center}.contact-intro h2{font:700 34px Montserrat;margin:8px 0 14px;color:#fff}.contact-intro p:not(.card-kicker){color:#dbe2eb}.contact-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}.contact-layout .form-grid{margin:0}.contact-layout .interest-form{height:100%;max-width:none}.contact-section{padding-top:75px;padding-bottom:95px}@media(max-width:900px){.events-program-grid{grid-template-columns:1fr}.contact-layout{grid-template-columns:1fr}.contact-intro{padding:30px}}
+.events-program-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.events-program-grid .path-card{min-height:330px}.contact-layout{display:grid;grid-template-columns:minmax(320px,.9fr) minmax(0,1.35fr);gap:34px;align-items:stretch;max-width:1280px;margin:0 auto}.contact-intro{background:var(--navy);color:#fff;border-radius:24px;padding:38px;display:flex;flex-direction:column;justify-content:center}.contact-intro h2{font:700 34px Montserrat;margin:8px 0 14px;color:#fff}.contact-intro p:not(.card-kicker){color:#dbe2eb}.contact-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}.contact-layout .form-grid{margin:0}.contact-layout .interest-form{height:100%;max-width:none}.contact-section{padding-top:75px;padding-bottom:95px}@media(max-width:900px){.events-program-grid{grid-template-columns:1fr}.contact-layout{grid-template-columns:1fr}.contact-intro{padding:30px}}
 
 /* Visitor chat */
 .chat-widget{position:fixed;right:24px;bottom:24px;z-index:1200;font-family:inherit}
@@ -347,7 +347,7 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
 /* Support form layout fix */
 .support-us .section-heading{max-width:900px;margin-left:auto;margin-right:auto}
 .forms .section-heading{max-width:900px;margin-left:auto;margin-right:auto}
-.forms .form-grid{display:grid;grid-template-columns:minmax(0,820px);justify-content:center;gap:24px}
+.forms .form-grid{display:grid;grid-template-columns:minmax(0,1fr);justify-content:stretch;gap:24px}
 .forms .interest-form{width:100%;max-width:none;box-sizing:border-box;padding:32px;border-radius:24px}
 .forms .interest-form input,.forms .interest-form select,.forms .interest-form textarea{width:100%;max-width:100%;box-sizing:border-box}
 .forms .interest-form .consent{display:flex;align-items:flex-start;gap:10px;width:100%;box-sizing:border-box}
@@ -358,7 +358,7 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
 
 /* Contact form refinement */
 .contact-layout .form-grid{display:block;width:100%;min-width:0}
-.contact-layout .interest-form{width:100%;min-width:0;box-sizing:border-box;padding:32px}
+.contact-layout .interest-form{width:100%;min-width:0;box-sizing:border-box;padding:36px}
 .contact-layout .interest-form input,.contact-layout .interest-form textarea{display:block;width:100%;min-width:0;box-sizing:border-box}
 .contact-layout .interest-form .btn{align-self:flex-start;white-space:nowrap}
 @media(max-width:520px){.contact-layout .interest-form{padding:24px 18px}.contact-layout .interest-form .btn{width:100%}}
@@ -445,4 +445,18 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
     line-height:1.2!important;
     white-space:nowrap!important;
   }
+}
+
+
+/* Final contact layout: use the available desktop width and prevent unnecessary field wrapping */
+.contact-layout{width:min(1280px,100%);box-sizing:border-box}
+.contact-layout .contact-intro,
+.contact-layout .form-grid,
+.contact-layout .interest-form{min-width:0}
+.contact-layout .contact-field label{display:block;white-space:nowrap;overflow:visible}
+.contact-layout .contact-field input,
+.contact-layout .contact-field textarea{width:100%;max-width:none}
+.contact-layout .contact-message-field textarea{min-height:180px}
+@media(max-width:900px){
+  .contact-layout{grid-template-columns:1fr;max-width:760px}
 }
