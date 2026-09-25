@@ -355,3 +355,10 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
 .forms .interest-form .donation-options-hidden{width:100%;box-sizing:border-box;margin-top:24px}
 .donate-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 @media(max-width:700px){.forms .interest-form{padding:24px 18px}.donate-grid{grid-template-columns:1fr}}
+
+/* Contact form refinement */
+.contact-layout .form-grid{display:block;width:100%;min-width:0}
+.contact-layout .interest-form{width:100%;min-width:0;box-sizing:border-box;padding:32px}
+.contact-layout .interest-form input,.contact-layout .interest-form textarea{display:block;width:100%;min-width:0;box-sizing:border-box}
+.contact-layout .interest-form .btn{align-self:flex-start;white-space:nowrap}
+@media(max-width:520px){.contact-layout .interest-form{padding:24px 18px}.contact-layout .interest-form .btn{width:100%}}
