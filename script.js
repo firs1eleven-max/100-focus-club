@@ -119,7 +119,7 @@ navLinks.forEach(link=>{
   const key='focusclub_chat_token';
   const escapeHtml=(v)=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const wrap=document.createElement('div'); wrap.className='chat-widget';
-  wrap.innerHTML=`<button class="chat-launcher" type="button" aria-expanded="false" aria-controls="focus-chat-panel">💬 <span>Chat with us</span></button>
+  wrap.innerHTML=`<button class="chat-launcher" type="button" aria-label="Open chat" aria-expanded="false" aria-controls="focus-chat-panel"><span aria-hidden="true">💬</span></button>
   <section class="chat-panel" id="focus-chat-panel" hidden aria-label="100% Focus Club chat">
     <header class="chat-header"><div><strong>100% Focus Club</strong><small>We're here to help</small></div><button type="button" class="chat-close" aria-label="Close chat">×</button></header>
     <div class="chat-messages" aria-live="polite"></div>
