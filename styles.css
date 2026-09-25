@@ -537,3 +537,10 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
     grid-column:1!important;
   }
 }
+
+
+/* Mobile floating actions: keep Support Us and Chat With Us separated */
+@media(max-width:720px){
+  .nav-support{margin-right:0!important}
+  .chat-widget{bottom:18px!important;right:16px!important;z-index:9999!important}
+}
