@@ -144,5 +144,5 @@ navLinks.forEach(link=>{
   replyForm.addEventListener('submit',async e=>{e.preventDefault();const input=replyForm.elements.message,message=input.value.trim(),status=replyForm.querySelector('.chat-status-message');if(!message)return;input.disabled=true;status.textContent='Sending…';try{const r=await fetch('/api/chat/message',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,message})});if(!r.ok){const d=await r.json();throw new Error(d.error||'Send failed');}input.value='';status.textContent='';await load();}catch(err){status.textContent=err.message;}finally{input.disabled=false;input.focus();}});
   close.addEventListener('click',shut);launcher.addEventListener('click',open);
   if(token){startForm.hidden=true;replyForm.hidden=false;load();}
-  setInterval(()=>token&&load(),4000);
+  setInterval(()=>token&&load(),8000);
 })();
