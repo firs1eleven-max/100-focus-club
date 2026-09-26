@@ -755,3 +755,74 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
   .nav-dropdown-menu{position:static;transform:none;min-width:0;margin:0 0 4px;padding:4px 0 4px 14px;border:0;border-left:2px solid var(--amber);border-radius:0;box-shadow:none}
   .nav-dropdown-menu a{padding:9px 10px;font-size:12px}
 }
+
+
+/* Professional dropdown navigation */
+.nav-dropdown{position:relative}
+.nav-dropdown>summary{list-style:none;cursor:pointer;padding:7px 0;white-space:nowrap}
+.nav-dropdown>summary::-webkit-details-marker{display:none}
+.nav-dropdown>summary::after{content:"⌄";font-size:11px;margin-left:6px;color:var(--muted)}
+.nav-dropdown[open]>summary::after{content:"⌃"}
+.nav-dropdown-menu{
+  position:absolute;
+  top:calc(100% + 10px);
+  left:50%;
+  transform:translateX(-50%);
+  min-width:190px;
+  padding:8px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:14px;
+  box-shadow:0 14px 34px rgba(11,31,58,.14);
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  z-index:50;
+}
+.nav-dropdown-menu a{
+  display:block;
+  padding:9px 12px;
+  border-radius:9px;
+  font-size:13px;
+  white-space:nowrap;
+}
+.nav-dropdown-menu a:hover{background:var(--cream);color:var(--navy)}
+.nav-dropdown[open]>summary{color:var(--navy);font-weight:800}
+
+/* Support Us remains the primary visible action between navigation and floating tools */
+.site-header .nav-support{
+  display:inline-flex!important;
+  align-items:center;
+  justify-content:center;
+  padding:8px 14px!important;
+  background:var(--amber)!important;
+  color:var(--navy)!important;
+  border-radius:999px;
+  white-space:nowrap;
+}
+
+/* Floating controls: Accessibility, Support Us, Chat — visibly separated */
+.floating-support{
+  display:flex!important;
+  position:fixed!important;
+  right:24px!important;
+  bottom:92px!important;
+  z-index:1190!important;
+}
+.chat-widget{right:24px!important;bottom:20px!important;z-index:1200!important}
+.accessibility-widget{right:24px!important;bottom:166px!important;z-index:1180!important}
+@media(max-width:850px){
+  .nav-dropdown-menu{
+    position:static;
+    transform:none;
+    min-width:0;
+    margin:4px 0 4px 12px;
+    box-shadow:none;
+    border-radius:10px;
+  }
+  .nav-dropdown>summary{padding:10px 0}
+  .site-header .nav-support{width:100%}
+  .floating-support{right:16px!important;bottom:92px!important}
+  .chat-widget{right:16px!important;bottom:16px!important}
+  .accessibility-widget{right:16px!important;bottom:166px!important}
+}
