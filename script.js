@@ -18,6 +18,16 @@ navLinks.forEach(link=>{
   if(active)link.setAttribute('aria-current','page');
   else link.removeAttribute('aria-current');
 });
+document.querySelectorAll('.nav-dropdown').forEach(dropdown=>{
+  const children=[...dropdown.querySelectorAll('.nav-dropdown-menu a')];
+  const hasActive=children.some(link=>link.classList.contains('active'));
+  if(hasActive){
+    dropdown.classList.add('active-parent');
+    dropdown.open=true;
+  }
+  const summary=dropdown.querySelector('summary');
+  if(summary) summary.classList.toggle('active',hasActive);
+});
 
 /* Published website content powers the dedicated Stories page without hard-coded posts. */
 (async function loadStories(){
