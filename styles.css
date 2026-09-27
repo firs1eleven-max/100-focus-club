@@ -971,3 +971,47 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
 /* Floating Support Us button should remain a visible branded control */
 .floating-support{background:var(--amber)!important;color:var(--navy)!important;border-radius:999px!important;padding:12px 18px!important;font-weight:800!important;box-shadow:0 8px 22px rgba(11,31,58,.18)!important;white-space:nowrap!important}
 .floating-support:hover{background:var(--gold)!important;color:var(--navy)!important}
+
+
+/* Final header/dropdown and floating-action polish */
+.nav-dropdown-menu{
+  background:#fff!important;
+  border:1px solid var(--line)!important;
+  box-shadow:0 14px 32px rgba(11,31,58,.12)!important;
+}
+.nav-dropdown-menu a:hover,
+.nav-dropdown-menu a.active{
+  background:var(--cream)!important;
+  color:var(--navy)!important;
+}
+.floating-support{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  position:fixed!important;
+  right:24px!important;
+  bottom:98px!important;
+  min-height:44px!important;
+  padding:12px 18px!important;
+  background:var(--amber)!important;
+  color:var(--navy)!important;
+  border:2px solid #fff!important;
+  border-radius:999px!important;
+  box-shadow:0 9px 24px rgba(11,31,58,.20)!important;
+  z-index:1190!important;
+}
+.chat-widget{
+  right:24px!important;
+  bottom:20px!important;
+  z-index:1200!important;
+}
+.accessibility-widget{
+  right:24px!important;
+  bottom:176px!important;
+  z-index:1180!important;
+}
+@media(max-width:850px){
+  .floating-support{right:16px!important;bottom:96px!important}
+  .chat-widget{right:16px!important;bottom:16px!important}
+  .accessibility-widget{right:16px!important;bottom:176px!important}
+}
