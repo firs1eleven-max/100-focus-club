@@ -46,6 +46,27 @@ document.querySelectorAll('.nav-dropdown').forEach(dropdown=>{
   }catch(e){const storySection=document.getElementById('stories');if(storySection)storySection.insertAdjacentHTML('beforeend','<p class="empty-content">Stories and updates are temporarily unavailable. Please check back soon.</p>');}
 })();
 
+/* Merchandise catalog */
+(async function loadMerchandise(){
+  const grid=document.getElementById('merchandise-grid');
+  const empty=document.getElementById('merchandise-empty');
+  if(!grid)return;
+  try{
+    const r=await fetch('/api/content?fresh='+Date.now(),{cache:'no-store'});
+    if(!r.ok)throw new Error('content');
+    const d=await r.json();
+    const items=d.merchandise||[];
+    const escapeHtml=s=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+    grid.innerHTML=items.map(item=>{
+      const action=item.purchase_url
+        ? '<a class="btn btn-primary" href="'+escapeHtml(item.purchase_url)+'" target="_blank" rel="noopener">Order / Buy</a>'
+        : '<a class="btn btn-outline" href="/contact?subject=Merchandise%20order&item='+encodeURIComponent(item.title)+'">Ask About This Item</a>';
+      return '<article class="merchandise-card"><div class="merchandise-image"><img src="'+escapeHtml(item.url)+'" alt="'+escapeHtml(item.title)+'"></div><div class="merchandise-copy"><p class="card-kicker">100% FOCUS CLUB MERCHANDISE</p><h2>'+escapeHtml(item.title)+'</h2>'+(item.price?'<p class="merchandise-price">'+escapeHtml(item.price)+'</p>':'')+'<p>'+escapeHtml(item.description||'Support the 100% Focus Club mission through this merchandise item.')+'</p>'+action+'</div></article>';
+    }).join('');
+    if(!items.length&&empty)empty.hidden=false;
+  }catch(e){if(empty)empty.hidden=false;}
+})();
+
 /* Accessibility controller — supports all display options and keeps old settings compatible. */
 (function(){
   const toggle=document.querySelector('.accessibility-toggle');
