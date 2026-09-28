@@ -46,6 +46,17 @@ document.querySelectorAll('.nav-dropdown').forEach(dropdown=>{
   }catch(e){const storySection=document.getElementById('stories');if(storySection)storySection.insertAdjacentHTML('beforeend','<p class="empty-content">Stories and updates are temporarily unavailable. Please check back soon.</p>');}
 })();
 
+/* Merchandise order handoff: prefill the Contact form when an item is selected */
+(function(){
+  const p=new URLSearchParams(window.location.search);
+  const subject=p.get('subject');
+  const item=p.get('item');
+  const field=document.querySelector('#contact-subject');
+  if(field && (subject||item)){
+    field.value=subject && item ? subject+' — '+item : (subject||item);
+  }
+})();
+
 /* Merchandise catalog */
 (async function loadMerchandise(){
   const grid=document.getElementById('merchandise-grid');
