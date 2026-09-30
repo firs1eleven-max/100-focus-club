@@ -1035,3 +1035,42 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
 .merchandise-note span{color:#dbe2eb;flex:1 1 420px;font-size:14px}
 @media(max-width:900px){.merchandise-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.merchandise-grid{grid-template-columns:1fr}.merchandise-note{align-items:flex-start}.merchandise-note .btn{width:100%}}
+
+
+/* Professional dropdowns: subtle white panel with shadow on desktop */
+.nav-dropdown-menu{background:#fff!important;border:1px solid var(--line)!important;border-radius:12px!important;box-shadow:0 14px 32px rgba(11,31,58,.14)!important}
+.nav-dropdown-menu a.active{background:var(--cream);color:var(--navy);font-weight:800}
+.nav-dropdown>summary.active{color:var(--navy)!important}
+.nav-dropdown>summary.active::after{color:var(--amber)}
+/* Floating Support Us: distinct amber action between accessibility and chat */
+.floating-support{
+  display:flex!important;
+  position:fixed!important;
+  right:24px!important;
+  bottom:92px!important;
+  z-index:1190!important;
+  background:var(--amber)!important;
+  color:var(--navy)!important;
+  border:2px solid #fff!important;
+  box-shadow:0 10px 26px rgba(11,31,58,.20)!important;
+  padding:11px 17px!important;
+  border-radius:999px!important;
+  font-weight:800!important;
+  white-space:nowrap!important;
+}
+.merch-lightbox{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:5000;padding:28px}
+.merch-lightbox.open{display:flex}
+.merch-lightbox-backdrop{position:absolute;inset:0;background:rgba(7,23,43,.78)}
+.merch-lightbox-panel{position:relative;z-index:1;width:min(92vw,900px);height:min(88vh,760px);background:#fff;border-radius:22px;padding:22px;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.3)}
+.merch-lightbox-close{position:absolute;right:14px;top:10px;width:40px;height:40px;border:0;border-radius:50%;background:var(--navy);color:#fff;font-size:26px;cursor:pointer;z-index:2}
+.merch-lightbox-stage{flex:1;min-height:0;display:grid;place-items:center;overflow:auto;background:var(--cream);border-radius:14px;padding:20px}
+.merch-lightbox-stage img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;transform-origin:center;transition:transform .15s ease;cursor:zoom-in}
+.merch-lightbox-controls{display:flex;justify-content:center;gap:8px;padding-top:14px}
+.merch-lightbox-controls button{min-width:44px;height:40px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--navy);font-weight:800;cursor:pointer}
+.merch-lightbox-controls button:hover{background:var(--cream)}
+.merch-lightbox-open{overflow:hidden}
+@media(max-width:850px){
+  .floating-support{right:16px!important;bottom:92px!important}
+  .merch-lightbox{padding:14px}
+  .merch-lightbox-panel{width:96vw;height:88vh;padding:14px}
+}
