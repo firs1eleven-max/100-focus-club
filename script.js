@@ -19,14 +19,20 @@ navLinks.forEach(link=>{
   else link.removeAttribute('aria-current');
 });
 document.querySelectorAll('.nav-dropdown').forEach(dropdown=>{
-  const children=[...dropdown.querySelectorAll('.nav-dropdown-menu a')];
-  const hasActive=children.some(link=>link.classList.contains('active'));
-  if(hasActive){
-    dropdown.classList.add('active-parent');
-    dropdown.open=true;
-  }
+  dropdown.classList.remove('active-parent');
+  dropdown.open=false;
   const summary=dropdown.querySelector('summary');
-  if(summary) summary.classList.toggle('active',hasActive);
+  if(summary) summary.classList.remove('active');
+});
+document.querySelectorAll('.nav a, .nav-dropdown-menu a').forEach(link=>{
+  link.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-dropdown').forEach(dropdown=>{
+      dropdown.open=false;
+      dropdown.classList.remove('active-parent');
+      const summary=dropdown.querySelector('summary');
+      if(summary) summary.classList.remove('active');
+    });
+  });
 });
 
 /* Published website content powers the dedicated Stories page without hard-coded posts. */
@@ -75,6 +81,33 @@ document.querySelectorAll('.nav-dropdown').forEach(dropdown=>{
       return '<article class="merchandise-card"><div class="merchandise-image"><img src="'+escapeHtml(item.url)+'" alt="'+escapeHtml(item.title)+'"></div><div class="merchandise-copy"><p class="card-kicker">100% FOCUS CLUB MERCHANDISE</p><h2>'+escapeHtml(item.title)+'</h2>'+(item.price?'<p class="merchandise-price">'+escapeHtml(item.price)+'</p>':'')+'<p>'+escapeHtml(item.description||'Support the 100% Focus Club mission through this merchandise item.')+'</p>'+action+'</div></article>';
     }).join('');
     if(!items.length&&empty)empty.hidden=false;
+    grid.querySelectorAll('.merchandise-image img').forEach(img=>{
+      img.addEventListener('click',()=>{
+        let modal=document.getElementById('merch-lightbox');
+        if(!modal){
+          modal=document.createElement('div');
+          modal.id='merch-lightbox';
+          modal.className='merch-lightbox';
+          modal.innerHTML='<div class="merch-lightbox-backdrop" data-close="1"></div><div class="merch-lightbox-panel" role="dialog" aria-modal="true" aria-label="Merchandise image viewer"><button class="merch-lightbox-close" type="button" aria-label="Close image">×</button><div class="merch-lightbox-stage"><img alt=""></div><div class="merch-lightbox-controls"><button type="button" data-zoom="out" aria-label="Zoom out">−</button><button type="button" data-zoom="reset" aria-label="Reset size">100%</button><button type="button" data-zoom="in" aria-label="Zoom in">+</button></div></div>';
+          document.body.appendChild(modal);
+          let scale=1;
+          const image=modal.querySelector('.merch-lightbox-stage img');
+          const update=()=>{image.style.transform='scale('+scale+')';modal.querySelector('[data-zoom="reset"]').textContent=Math.round(scale*100)+'%';};
+          modal.querySelector('[data-zoom="out"]').onclick=()=>{scale=Math.max(.6,scale-.1);update()};
+          modal.querySelector('[data-zoom="in"]').onclick=()=>{scale=Math.min(2.5,scale+.1);update()};
+          modal.querySelector('[data-zoom="reset"]').onclick=()=>{scale=1;update()};
+          const close=()=>{modal.classList.remove('open');document.body.classList.remove('merch-lightbox-open')};
+          modal.querySelector('.merch-lightbox-close').onclick=close;
+          modal.querySelector('.merch-lightbox-backdrop').onclick=close;
+          modal.addEventListener('click',e=>{if(e.target===modal)close()});
+          modal.addEventListener('wheel',e=>{if(!modal.classList.contains('open'))return;e.preventDefault();scale=Math.max(.6,Math.min(2.5,scale+(e.deltaY<0?.1:-.1)));update()},{passive:false});
+        }
+        const image=modal.querySelector('.merch-lightbox-stage img');
+        image.src=img.src; image.alt=img.alt; image.style.transform='scale(1)';
+        modal.querySelector('[data-zoom="reset"]').textContent='100%';
+        modal.classList.add('open');document.body.classList.add('merch-lightbox-open');
+      });
+    });
   }catch(e){if(empty)empty.hidden=false;}
 })();
 
