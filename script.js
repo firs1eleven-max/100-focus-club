@@ -6,31 +6,29 @@ const cf=document.querySelector('#contact-form');if(cf)cf.addEventListener('subm
 function animateImpactCounters(){const counters=document.querySelectorAll('.impact-counter');if(!counters.length)return;const duration=1800;const start=performance.now();const tick=now=>{const progress=Math.min((now-start)/duration,1);counters.forEach((el,index)=>{if(progress<1){const value=Math.floor((1-Math.pow(1-progress,3))*(18+index*11));el.textContent=String(value).padStart(2,'0');}else{el.textContent=el.dataset.final||'Growing';}});if(progress<1)requestAnimationFrame(tick)};requestAnimationFrame(tick)}
 const impact=document.querySelector('.impact');if(impact){const observer=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.isIntersecting)){animateImpactCounters();observer.disconnect()}},{threshold:.25});observer.observe(impact)}
 
-/* Multi-page navigation: highlight the current page and close the mobile menu after navigation. */
+/* Multi-page navigation: highlight the current page and keep dropdown parents neutral. */
 const currentPath=window.location.pathname.replace(/\/$/,'')||'/';
 const navLinks=[...document.querySelectorAll('.nav a')];
 navLinks.forEach(link=>{
   const href=link.getAttribute('href')||'';
   const target=href.split('#')[0].replace(/\/$/,'')||'/';
-  const isHome=currentPath==='/'&&target==='/';
-  const active=isHome||target===currentPath;
+  const active=(currentPath==='/'&&target==='/')||target===currentPath;
   link.classList.toggle('active',active);
   if(active)link.setAttribute('aria-current','page');
   else link.removeAttribute('aria-current');
 });
 document.querySelectorAll('.nav-dropdown').forEach(dropdown=>{
-  dropdown.classList.remove('active-parent');
-  dropdown.open=false;
-  const summary=dropdown.querySelector('summary');
-  if(summary) summary.classList.remove('active');
+  const trigger=dropdown.querySelector('.nav-dropdown-trigger');
+  const childActive=dropdown.querySelector('.nav-dropdown-menu a.active');
+  if(childActive && trigger){
+    trigger.classList.remove('active');
+    trigger.removeAttribute('aria-current');
+  }
 });
-document.querySelectorAll('.nav a, .nav-dropdown-menu a').forEach(link=>{
+document.querySelectorAll('.nav a').forEach(link=>{
   link.addEventListener('click',()=>{
     document.querySelectorAll('.nav-dropdown').forEach(dropdown=>{
-      dropdown.open=false;
       dropdown.classList.remove('active-parent');
-      const summary=dropdown.querySelector('summary');
-      if(summary) summary.classList.remove('active');
     });
   });
 });
