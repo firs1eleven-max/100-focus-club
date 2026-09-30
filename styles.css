@@ -1074,3 +1074,88 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
   .merch-lightbox{padding:14px}
   .merch-lightbox-panel{width:96vw;height:88vh;padding:14px}
 }
+
+
+/* Professional navigation dropdowns: hover on desktop, tap on touch devices */
+.nav-dropdown{position:relative;display:flex;align-items:center;height:100%}
+.nav-dropdown-trigger{display:inline-flex!important;align-items:center;gap:6px;white-space:nowrap}
+.nav-dropdown-trigger::after{content:"⌄";font-size:11px;color:var(--muted);transition:transform .15s ease}
+.nav-dropdown:hover .nav-dropdown-trigger::after,
+.nav-dropdown:focus-within .nav-dropdown-trigger::after{transform:rotate(180deg);color:var(--amber)}
+.nav-dropdown-menu{
+  position:absolute;
+  top:calc(100% + 8px);
+  left:50%;
+  transform:translateX(-50%) translateY(-4px);
+  min-width:200px;
+  padding:8px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:14px;
+  box-shadow:0 16px 36px rgba(11,31,58,.14);
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity .15s ease,transform .15s ease,visibility .15s ease;
+  z-index:100;
+}
+.nav-dropdown:hover .nav-dropdown-menu,
+.nav-dropdown:focus-within .nav-dropdown-menu{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+  transform:translateX(-50%) translateY(0);
+}
+.nav-dropdown-menu a{
+  display:block!important;
+  padding:10px 13px;
+  border-radius:9px;
+  white-space:nowrap;
+  font-size:13px;
+}
+.nav-dropdown-menu a:hover{background:var(--cream);color:var(--navy)}
+.nav-dropdown:has(.nav-dropdown-menu a.active)>.nav-dropdown-trigger{
+  color:var(--navy);
+  font-weight:800;
+}
+.nav-dropdown:has(.nav-dropdown-menu a.active)>.nav-dropdown-trigger::after{color:var(--amber)}
+/* Floating Support Us stays a visible amber action between accessibility and chat */
+.floating-support{
+  display:flex!important;
+  background:var(--amber)!important;
+  color:var(--navy)!important;
+  border-radius:999px!important;
+  padding:11px 17px!important;
+  box-shadow:0 8px 22px rgba(11,31,58,.16)!important;
+  font-weight:800!important;
+}
+
+/* Touch/mobile navigation can use tap; desktop uses hover */
+@media(max-width:850px){
+  .nav-dropdown{display:block;width:100%;height:auto}
+  .nav-dropdown-trigger{width:100%;justify-content:space-between;padding:10px 0;font-size:12px}
+  .nav-dropdown-menu{
+    position:static;
+    transform:none;
+    min-width:0;
+    width:100%;
+    margin:0 0 4px;
+    padding:4px 0 4px 14px;
+    border:0;
+    border-left:2px solid var(--amber);
+    border-radius:0;
+    box-shadow:none;
+    background:transparent;
+    opacity:1;
+    visibility:visible;
+    pointer-events:auto;
+    display:none;
+  }
+  .nav-dropdown:focus-within .nav-dropdown-menu,
+  .nav-dropdown:hover .nav-dropdown-menu{display:flex}
+  .nav-dropdown-menu a{padding:9px 10px}
+  .floating-support{right:16px!important;bottom:92px!important}
+}
