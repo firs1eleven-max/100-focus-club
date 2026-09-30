@@ -1168,3 +1168,95 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
 .nav-dropdown:focus-within .nav-dropdown-menu{display:none!important}
 .nav-dropdown[open]:hover .nav-dropdown-menu,
 .nav-dropdown[open]:focus-within .nav-dropdown-menu{display:flex!important}
+
+
+/* Final dropdown navigation: clean hover menus on desktop, no persistent parent highlight */
+@media(min-width:851px){
+  .nav-dropdown{position:relative;display:flex;align-items:center;height:100%}
+  .nav-dropdown-trigger{
+    display:inline-flex!important;
+    align-items:center;
+    gap:6px;
+    padding:7px 0!important;
+    color:inherit!important;
+    font:inherit;
+    white-space:nowrap;
+  }
+  .nav-dropdown-trigger::after{
+    content:"⌄";
+    font-size:10px;
+    color:var(--muted);
+    transition:transform .15s ease;
+  }
+  .nav-dropdown:hover .nav-dropdown-trigger::after,
+  .nav-dropdown:focus-within .nav-dropdown-trigger::after{
+    transform:rotate(180deg);
+    color:var(--amber);
+  }
+  .nav-dropdown-menu{
+    display:none!important;
+    position:absolute!important;
+    top:calc(100% + 8px)!important;
+    left:50%!important;
+    transform:translateX(-50%)!important;
+    min-width:190px!important;
+    padding:8px!important;
+    background:#fff!important;
+    border:1px solid var(--line)!important;
+    border-radius:12px!important;
+    box-shadow:0 12px 30px rgba(11,31,58,.12)!important;
+    flex-direction:column!important;
+    gap:2px!important;
+    z-index:100!important;
+  }
+  .nav-dropdown:hover .nav-dropdown-menu,
+  .nav-dropdown:focus-within .nav-dropdown-menu{
+    display:flex!important;
+  }
+  .nav-dropdown-menu a{
+    display:block;
+    padding:9px 12px!important;
+    border-radius:8px;
+    font-size:13px!important;
+    white-space:nowrap;
+  }
+  .nav-dropdown-menu a:hover{
+    background:var(--cream)!important;
+    color:var(--navy)!important;
+  }
+  /* A child page is active; do not keep the dropdown parent highlighted. */
+  .nav-dropdown:has(.nav-dropdown-menu a.active)>.nav-dropdown-trigger{
+    color:inherit!important;
+    font-weight:600!important;
+  }
+}
+@media(max-width:850px){
+  .nav-dropdown{display:block;width:100%;height:auto}
+  .nav-dropdown-trigger{
+    display:flex!important;
+    width:100%;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px 0!important;
+  }
+  .nav-dropdown-menu{
+    display:none!important;
+    position:static!important;
+    transform:none!important;
+    min-width:0!important;
+    margin:2px 0 6px!important;
+    padding:5px 0 5px 12px!important;
+    background:transparent!important;
+    border:0!important;
+    border-left:2px solid var(--amber)!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+  }
+  .nav-dropdown:hover .nav-dropdown-menu,
+  .nav-dropdown:focus-within .nav-dropdown-menu{
+    display:flex!important;
+    flex-direction:column!important;
+  }
+}
+
+/* Clicking a dropdown destination navigates normally and closes the menu. */
