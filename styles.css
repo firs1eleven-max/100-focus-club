@@ -1159,3 +1159,12 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
   .nav-dropdown-menu a{padding:9px 10px}
   .floating-support{right:16px!important;bottom:92px!important}
 }
+
+
+/* Dropdown behavior: open on click, close immediately after selecting an item */
+.nav-dropdown .nav-dropdown-menu{display:none!important}
+.nav-dropdown[open] .nav-dropdown-menu{display:flex!important}
+.nav-dropdown:hover .nav-dropdown-menu,
+.nav-dropdown:focus-within .nav-dropdown-menu{display:none!important}
+.nav-dropdown[open]:hover .nav-dropdown-menu,
+.nav-dropdown[open]:focus-within .nav-dropdown-menu{display:flex!important}
