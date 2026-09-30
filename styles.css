@@ -1260,3 +1260,79 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
 }
 
 /* Clicking a dropdown destination navigates normally and closes the menu. */
+
+
+/* Final professional header dropdowns */
+.nav-dropdown{position:relative;display:flex;align-items:center;height:100%}
+.nav-dropdown-trigger{
+  appearance:none;
+  border:0;
+  background:transparent;
+  color:var(--navy);
+  font:600 13px Inter,Arial,sans-serif;
+  padding:7px 0;
+  margin:0;
+  cursor:pointer;
+  white-space:nowrap;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+.nav-dropdown-trigger::after{content:"⌄";font-size:11px;color:var(--muted);transition:transform .15s ease}
+.nav-dropdown.open>.nav-dropdown-trigger,
+.nav-dropdown-trigger:hover{color:var(--amber)}
+.nav-dropdown.open>.nav-dropdown-trigger::after{transform:rotate(180deg);color:var(--amber)}
+.nav-dropdown-menu{
+  display:none!important;
+  position:absolute!important;
+  top:calc(100% + 10px)!important;
+  left:50%!important;
+  transform:translateX(-50%)!important;
+  width:max-content!important;
+  min-width:190px!important;
+  padding:8px!important;
+  margin:0!important;
+  background:#fff!important;
+  border:1px solid var(--line)!important;
+  border-radius:14px!important;
+  box-shadow:0 16px 36px rgba(11,31,58,.14)!important;
+  flex-direction:column!important;
+  gap:2px!important;
+  z-index:100!important;
+}
+.nav-dropdown.open>.nav-dropdown-menu{display:flex!important}
+.nav-dropdown-menu a{
+  display:block!important;
+  width:100%!important;
+  padding:10px 13px!important;
+  border-radius:9px!important;
+  color:var(--navy)!important;
+  font-size:13px!important;
+  white-space:nowrap!important;
+}
+.nav-dropdown-menu a:hover{background:var(--cream)!important;color:var(--navy)!important}
+.site-header .nav-support{
+  background:var(--amber)!important;
+  color:var(--navy)!important;
+  border-radius:999px!important;
+  padding:9px 16px!important;
+}
+@media(max-width:850px){
+  .nav-dropdown{display:block;width:100%;height:auto}
+  .nav-dropdown-trigger{width:100%;justify-content:space-between;padding:10px 0;font-size:12px}
+  .nav-dropdown-menu,
+  .nav-dropdown.open>.nav-dropdown-menu{
+    position:static!important;
+    transform:none!important;
+    width:100%!important;
+    min-width:0!important;
+    margin:2px 0 6px!important;
+    padding:4px 0 4px 14px!important;
+    background:transparent!important;
+    border:0!important;
+    border-left:2px solid var(--amber)!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+  }
+  .nav-dropdown-menu a{padding:9px 10px!important}
+}
