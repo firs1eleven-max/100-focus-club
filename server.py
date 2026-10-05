@@ -279,6 +279,17 @@ class Handler(SimpleHTTPRequestHandler):
                 elif not url: return self.send_json({'error':'Video URL is required'},400)
                 now=datetime.now(timezone.utc).isoformat(); c=db(); c.execute('INSERT INTO media(kind,title,description,url,filename,price,purchase_url,created_at) VALUES(?,?,?,?,?,?,?,?)',(kind,title,description,url,filename,price,purchase_url,now)); c.commit(); c.close(); return self.send_json({'ok':True})
             except Exception as e: return self.send_json({'error':str(e)},500)
+        if path=='/api/admin/media/publish':
+            if not auth_ok(self): return self.send_json({'error':'Unauthorized'},401)
+            x=self.body_json()
+            try: media_id=int(x.get('id'))
+            except Exception: return self.send_json({'error':'Invalid media id'},400)
+            published=1 if x.get('published') else 0
+            c=db(); row=c.execute('SELECT id,kind FROM media WHERE id=?',(media_id,)).fetchone()
+            if not row: c.close(); return self.send_json({'error':'Media item not found'},404)
+            c.execute('UPDATE media SET published=? WHERE id=?',(published,media_id)); c.commit(); c.close()
+            return self.send_json({'ok':True,'published':bool(published)})
+
         if path=='/api/admin/media/delete':
             if not auth_ok(self): return self.send_json({'error':'Unauthorized'},401)
             x=self.body_json(); c=db(); row=c.execute('SELECT filename FROM media WHERE id=?',(int(x.get('id')),)).fetchone()
@@ -416,7 +427,7 @@ async function closeChat(id){{const r=await fetch('/api/chat/close',{{method:'PO
             for r in merch_rows:
                 price=html.escape(r["price"] or "")
                 purchase=html.escape(r["purchase_url"] or "")
-                merch_cards += f'<article class="content-manage-item merchandise-admin-item"><div><strong>{html.escape(r["title"])}</strong><span class="content-type">Merchandise</span></div><p>{html.escape(r["description"] or "")}</p><p><strong>{price or "Price not set"}</strong> · {"Published" if r["published"] else "Unpublished"}</p><p><a href="{html.escape(r["url"])}" target="_blank" rel="noopener">Preview image</a>{(" · <a href=\"" + purchase + "\" target=\"_blank\" rel=\"noopener\">Order link</a>") if purchase else ""}</p><button class="btn" type="button" onclick="deleteMedia({r["id"]},this)">Delete Merchandise</button></article>'
+                merch_cards += f'<article class="content-manage-item merchandise-admin-item"><div><strong>{html.escape(r["title"])}</strong><span class="content-type">Merchandise</span></div><p>{html.escape(r["description"] or "")}</p><p><strong>{price or "Price not set"}</strong> · {"Published" if r["published"] else "Unpublished"}</p><p><a href="{html.escape(r["url"])}" target="_blank" rel="noopener">Preview image</a>{(" · <a href=\"" + purchase + "\" target=\"_blank\" rel=\"noopener\">Order link</a>") if purchase else ""}</p><button class="btn" type="button" onclick="toggleMerch({r["id"]},{1 if not r["published"] else 0},this)">{"Publish" if not r["published"] else "Unpublish"}</button> <button class="btn" type="button" onclick="deleteMedia({r["id"]},this)">Delete Merchandise</button></article>'
             blog_cards=''
             for r in blog_rows:
                 blog_cards += f'<article class="content-manage-item"><div><strong>{html.escape(r["title"])}</strong><span class="content-type">Blog</span></div><p>{html.escape(r["excerpt"] or "")}</p><p><strong>{"Published" if r["published"] else "Draft"}</strong></p><p><button class="btn" type="button" onclick="toggleBlog({r["id"]},{1 if not r["published"] else 0},this)">{"Publish" if not r["published"] else "Unpublish"}</button> <button class="btn" type="button" onclick="deleteBlog({r["id"]},this)">Delete Permanently</button></p></article>'
@@ -451,6 +462,7 @@ document.getElementById('blog').addEventListener('submit',async e=>{{
     else{{message.textContent=await responseMessage(r,'','Failed')}}  }}catch(e){{message.textContent='Failed: Network error'}}
   finally{{button.disabled=false}}
 }});
+async function toggleMerch(id,published,button){{button.disabled=true;try{{let r=await fetch('/api/admin/media/publish',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{id,published:!!published}})}});if(r.ok)location.reload();else{{button.disabled=false;alert(await responseMessage(r,'','Update failed'))}}}}catch(e){{button.disabled=false;alert('Update failed: Network error')}}}}
 async function deleteMedia(id,button){{if(!confirm('Permanently delete this photo/video? This cannot be undone.'))return;button.disabled=true;let r=await fetch('/api/admin/media/delete',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{id}})}});if(r.ok)location.reload();else{{button.disabled=false;alert(await responseMessage(r,'','Delete failed'))}}}};
 async function toggleBlog(id,published,button){{button.disabled=true;try{{let r=await fetch('/api/admin/blog/publish',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{id,published:!!published}})}});if(r.ok)location.reload();else{{button.disabled=false;alert(await responseMessage(r,'','Publish failed'))}}}}catch(e){{button.disabled=false;alert('Publish failed: Network error')}}}}
 async function deleteBlog(id,button){{if(!confirm('Permanently delete this article? This cannot be undone.'))return;button.disabled=true;let r=await fetch('/api/admin/blog/delete',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{id}})}});if(r.ok)location.reload();else{{button.disabled=false;alert(await responseMessage(r,'','Delete failed'))}}}};
