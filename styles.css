@@ -1364,5 +1364,10 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
 /* Public contact email shown in the site footer and Contact page */
 .public-contact-email{margin:12px 0 0;color:var(--muted);font-size:14px;line-height:1.6;overflow-wrap:anywhere}
 .public-contact-email strong{color:var(--navy)}
-.public-contact-email a{color:var(--navy);font-weight:800;text-decoration:underline;text-decoration-color:var(--amber);text-underline-offset:3px}
+.public-contact-email a{color:var(--navy);font-weight:800;text-decoration:underline;text-decoration-color:var(--amber);text-underline-offset:3px;overflow-wrap:anywhere}
 .public-contact-email a:hover{color:#8a5b00}
+/* Ensure the public email stands out clearly against the dark footer */
+.footer-brand .public-contact-email{color:#fff;font-size:14px;font-weight:600}
+.footer-brand .public-contact-email strong{color:#f4a51c}
+.footer-brand .public-contact-email a{color:#fff;font-weight:800;text-decoration-color:#f4a51c;text-decoration-thickness:2px}
+.footer-brand .public-contact-email a:hover{color:#f4a51c}
