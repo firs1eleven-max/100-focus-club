@@ -1359,3 +1359,10 @@ body.a11y-focus-highlight :focus-visible{outline:4px solid var(--amber)!importan
 .stories-photo-grid figcaption{padding:12px 15px;font-weight:700;color:var(--navy);font-size:13px}
 @media(max-width:850px){.stories-block-heading{display:block}.stories-block-heading>p{margin-top:10px}.stories-post-grid{grid-template-columns:1fr}.stories-post-grid .story-featured{grid-column:auto;display:block}.stories-post-grid .story-featured>img{height:auto}.stories-photo-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.stories-photo-grid{grid-template-columns:1fr}.stories-photo-grid img{height:auto;max-height:420px;object-fit:contain;background:var(--cream)}}
+
+
+/* Public contact email shown in the site footer and Contact page */
+.public-contact-email{margin:12px 0 0;color:var(--muted);font-size:14px;line-height:1.6;overflow-wrap:anywhere}
+.public-contact-email strong{color:var(--navy)}
+.public-contact-email a{color:var(--navy);font-weight:800;text-decoration:underline;text-decoration-color:var(--amber);text-underline-offset:3px}
+.public-contact-email a:hover{color:#8a5b00}
