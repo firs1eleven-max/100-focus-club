@@ -1560,3 +1560,29 @@ main>section:first-child:not(.hero)>.section-heading p:last-child{max-width:720p
  .contact-actions .btn{width:100%}
 }
 @media(max-width:430px){.value-grid{grid-template-columns:1fr}.interest-form,.contact-form-wide{padding:22px 17px}}
+
+
+/* Impact section contrast fix: readable heading and supporting copy on the light surface */
+.impact{
+  background:linear-gradient(120deg,#eef3f9 0%,#ffffff 100%);
+}
+.impact h2{
+  color:#0B1F3A !important;
+}
+.impact .eyebrow{
+  color:#9A6500;
+}
+.impact p:not(.eyebrow){
+  color:#43536A !important;
+}
+.impact-boxes>div{
+  background:#fff;
+  border:1px solid rgba(11,31,58,.14);
+  box-shadow:0 12px 30px rgba(8,26,49,.07);
+}
+.impact-boxes strong{
+  color:#A96B00;
+}
+.impact-boxes span{
+  color:#43536A;
+}
